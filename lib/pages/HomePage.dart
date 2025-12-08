@@ -1,6 +1,8 @@
 import 'package:atlas/models/UserModel.dart';
 import 'package:atlas/services/UserService.dart';
 import 'package:atlas/widgets/FoodCategoryNavBar.dart';
+import 'package:atlas/widgets/PopularItems.dart';
+import 'package:atlas/widgets/TitleSection.dart';
 import 'package:atlas/widgets/customAppbar.dart';
 import 'package:flutter/material.dart';
 import 'dart:ui' as ui;
@@ -42,10 +44,7 @@ class _HomePageState extends State<HomePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Découverte',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                ),
+                TitleSection(title: 'Découverte'),
                 const SizedBox(height: 15),
                 SizedBox(
                   height: 180,
@@ -192,7 +191,11 @@ class _HomePageState extends State<HomePage> {
                   ],
                 ),
               
-                FoodCategoryNavBar()
+                FoodCategoryNavBar(),
+
+                const SizedBox(height: 20),
+                TitleSection(title: 'Popular Items', size: 18),
+                PopularItems(),
               ],
             ),
           );
