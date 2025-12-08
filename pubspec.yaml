@@ -30,3 +30,8 @@ flutter:
   assets:
     - assets/burger1.png
     - assets/burgerLogin.png
+    - assets/icon-burger.png
+    - assets/icon-pizza.png
+    - assets/icon-drink.png
+    - assets/icon-dessert.png
+    - assets/pizza1.png

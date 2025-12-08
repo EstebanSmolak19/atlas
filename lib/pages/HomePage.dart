@@ -1,5 +1,6 @@
 import 'package:atlas/models/UserModel.dart';
 import 'package:atlas/services/UserService.dart';
+import 'package:atlas/widgets/FoodCategoryNavBar.dart';
 import 'package:atlas/widgets/customAppbar.dart';
 import 'package:flutter/material.dart';
 import 'dart:ui' as ui;
@@ -190,6 +191,8 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ],
                 ),
+              
+                FoodCategoryNavBar()
               ],
             ),
           );
