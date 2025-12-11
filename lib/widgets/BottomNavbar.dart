@@ -1,4 +1,5 @@
 import 'package:atlas/pages/HomePage.dart';
+import 'package:atlas/pages/ProfilePage.dart';
 import 'package:flutter/material.dart';
 
 class BottomNavbar extends StatefulWidget {
@@ -14,7 +15,7 @@ class _BottomNavbarState extends State<BottomNavbar> {
   final List<Widget> _pages = [
     const HomePage(),
     const HomePage(),
-    const HomePage(), 
+    const ProfilePage(),
   ];
 
   @override
@@ -44,7 +45,7 @@ class _BottomNavbarState extends State<BottomNavbar> {
             children: [
               _buildNavItem(Icons.home, Icons.home_outlined, 0),
               _buildNavItem(Icons.favorite, Icons.favorite_border, 1),
-              _buildNavItem(Icons.person, Icons.person_outline, 3),
+              _buildNavItem(Icons.person, Icons.person_outline, 2),
             ],
           ),
         ),

@@ -100,7 +100,7 @@ class _PopularItemsState extends State<PopularItems> {
                             backgroundColor: Colors.white,
                             foregroundColor: Colors.black,
                             elevation: 0,
-                            minimumSize: const Size(double.infinity, 50),
+                            minimumSize: const Size(double.infinity, 40),
                             shape: RoundedRectangleBorder(
                               borderRadius:
                                   BorderRadius.circular(12),

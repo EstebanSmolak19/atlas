@@ -11,10 +11,10 @@ class _FoodCategoryNavBarState extends State<FoodCategoryNavBar> {
   int selectedIndex = 0;
 
   final List<Map<String, dynamic>> categories = [
-    {'icon': 'icon-burger.png', 'label': 'Burger', 'width': 350.0},
-    {'icon': 'icon-pizza.png', 'label': 'Pizza', 'width': 250.0, 'top': 15},
-    {'icon': 'icon-drink.png', 'label': 'Boisson', 'width': 330.0, 'top': 0},
-    {'icon': 'icon-dessert.png', 'label': 'Dessert', 'width': 250.0, 'top': 10},
+    {'icon': 'assets/icon-burger.png', 'label': 'Burger', 'width': 350.0},
+    {'icon': 'assets/icon-pizza.png', 'label': 'Pizza', 'width': 250.0, 'top': 15.0},
+    {'icon': 'assets/icon-drink.png', 'label': 'Boisson', 'width': 330.0, 'top': 0.0},
+    {'icon': 'assets/icon-dessert.png', 'label': 'Dessert', 'width': 250.0, 'top': 10.0},
   ];
 
   @override
