@@ -1,5 +1,8 @@
+import 'package:atlas/pages/FirstPage.dart';
+import 'package:atlas/providers/UserProvider.dart';
 import 'package:atlas/widgets/customAppbar.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'dart:ui' as ui;
 
 class ProfilePage extends StatefulWidget {
@@ -11,11 +14,25 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   final Color yellowColor = const Color.fromARGB(255, 242, 202, 80);
-  final String userName = "Esteban Smolak";
+  final Color scaffoldColor = const Color(0xFFF9F9F9);
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<UserProvider>(context, listen: false).loadUser();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    final user = Provider.of<UserProvider>(context).user;
+
+    final String userEmail = user?.email ?? "";
+    final String userName = user?.pseudo ?? "";
+
     return Scaffold(
+      backgroundColor: scaffoldColor,
       appBar: const CustomAppBar(),
       body: Stack(
         children: [
@@ -113,15 +130,28 @@ class _ProfilePageState extends State<ProfilePage> {
                             ],
                           ),
                           const SizedBox(height: 15),
-                          Text(
-                            userName,
-                            style: const TextStyle(
-                              fontSize: 26,
-                              fontWeight: FontWeight.w900,
-                              color: Colors.black,
-                              letterSpacing: -0.5,
+
+                          Column(
+                              children: [
+                                Text(
+                                  userName,
+                                  style: const TextStyle(
+                                    fontSize: 26,
+                                    fontWeight: FontWeight.w900,
+                                    color: Colors.black,
+                                    letterSpacing: -0.5,
+                                  ),
+                                ),
+                                Text(
+                                  userEmail,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.black.withOpacity(0.6),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
                         ],
                       ),
                     ),
@@ -237,7 +267,15 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                       const SizedBox(height: 40),
                       TextButton(
-                        onPressed: () {},
+                        onPressed: () async {
+                          await Provider.of<UserProvider>(context, listen: false).logout();
+                          if (context.mounted) {
+                            Navigator.of(context).pushAndRemoveUntil(
+                              MaterialPageRoute(builder: (context) => const FirstPage()),
+                              (route) => false,
+                            );
+                          }
+                        },
                         child: Text(
                           "Se déconnecter",
                           style: TextStyle(
@@ -247,7 +285,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 100),
+                      const SizedBox(height: 130),
                     ],
                   ),
                 ),
