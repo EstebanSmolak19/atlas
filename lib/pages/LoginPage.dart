@@ -1,4 +1,6 @@
+import 'dart:ui' as ui;
 import 'package:atlas/enum/InputType.dart';
+import 'package:atlas/widgets/login/RegisterSheet.dart';
 import 'package:atlas/widgets/login/inputField.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -14,7 +16,6 @@ class _LoginPageState extends State<LoginPage> {
   final Color yellowColor = const Color.fromARGB(255, 242, 202, 80);
   final Color scaffoldColor = const Color(0xFFF9F9F9);
 
-  //Pour récupérer le texte des champs InputField.
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
@@ -34,14 +35,22 @@ class _LoginPageState extends State<LoginPage> {
       _errorMessage = null;
     });
 
-    /**
-     * Fait la connexion utilisateur avec firebase
-     * en récupérant l'email et le mot de passe
-     */
-    await FirebaseAuth.instance.signInWithEmailAndPassword(
-      email: _emailController.text.trim(),
-      password: _passwordController.text.trim(),
-    );
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+    } catch (e) {
+      setState(() {
+        _errorMessage = "Email ou mot de passe incorrect.";
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -73,6 +82,24 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                 ),
+                
+                Positioned(
+                  top: 65, 
+                  child: Center(
+                    //Pour l'ombre sous le logo.
+                    child: ImageFiltered(
+                      imageFilter: ui.ImageFilter.blur(sigmaX: 6.0, sigmaY: 6.0),
+                      child: Image.asset(
+                        'assets/logo.png',
+                        width: 310, 
+                        fit: BoxFit.contain,
+                        color: Colors.black.withOpacity(0.4),
+                        colorBlendMode: BlendMode.srcIn,
+                      ),
+                    ),
+                  ),
+                ),
+
                 Positioned(
                   top: 60,
                   child: Center(
@@ -83,6 +110,7 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                 ),
+
                 Positioned(
                   bottom: 50,
                   child: Column(
@@ -102,10 +130,10 @@ class _LoginPageState extends State<LoginPage> {
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 40),
                         child: Text(
-                          "Artisanal Terroir Luxe Authentique Signature",
+                          "Artisanal Terroir Luxe Authentique \nSignature",
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            fontSize: 13,
+                            fontSize: 14,
                             color: Colors.black.withOpacity(0.7),
                             fontWeight: FontWeight.w600,
                             letterSpacing: 1.2,
@@ -130,7 +158,7 @@ class _LoginPageState extends State<LoginPage> {
                     label: "Email", 
                     controller: _emailController,
                     type: InputType.email
-                    ),
+                  ),
 
                   InputField(
                     label: "Mot de passe", 
@@ -139,7 +167,6 @@ class _LoginPageState extends State<LoginPage> {
                   ),
 
                   if (_errorMessage != null) ...[
-                    const SizedBox(height: 20),
                     Container(
                       padding: const EdgeInsets.all(12),
                       width: double.infinity,
@@ -155,7 +182,7 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ],
 
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 10),
 
                   SizedBox(
                     width: double.infinity,
@@ -179,22 +206,34 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
 
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 30),
 
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text("Pas encore de compte ?"),
-                      TextButton(
-                        //Prochaine redirection.
-                        onPressed: () {},
+                      const Text(
+                        "Pas encore de compte ? ",
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.black,
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () => RegisterSheet.show(context),
                         child: const Text(
-                          "S'inscrire",
-                          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+                          "Créer un compte",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            color: Colors.black,
+                            decoration: TextDecoration.underline,
+                          ),
                         ),
                       ),
                     ],
                   ),
+                  
+                  const SizedBox(height: 40),
                 ],
               ),
             ),
