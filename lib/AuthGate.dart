@@ -1,4 +1,4 @@
-import 'package:atlas/pages/LoginScreen.dart';
+import 'package:atlas/pages/LoginPage.dart';
 import 'package:atlas/widgets/BottomNavbar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -16,7 +16,7 @@ class AuthGate extends StatelessWidget {
         }
 
         if (!snapshot.hasData) {
-          return LoginScreen();
+          return LoginPage();
         }
 
         return const BottomNavbar();
