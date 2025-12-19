@@ -1,8 +1,8 @@
 import 'dart:ui' as ui;
 import 'package:atlas/enum/InputType.dart';
+import 'package:atlas/services/AuthService.dart';
 import 'package:atlas/widgets/login/RegisterSheet.dart';
 import 'package:atlas/widgets/login/inputField.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class LoginPage extends StatefulWidget {
@@ -13,6 +13,7 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  final AuthService _authService = AuthService();
   final Color yellowColor = const Color.fromARGB(255, 242, 202, 80);
   final Color scaffoldColor = const Color(0xFFF9F9F9);
 
@@ -36,10 +37,11 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
+      await _authService.signIn(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
+      
     } catch (e) {
       setState(() {
         _errorMessage = "Email ou mot de passe incorrect.";
@@ -86,7 +88,6 @@ class _LoginPageState extends State<LoginPage> {
                 Positioned(
                   top: 65, 
                   child: Center(
-                    //Pour l'ombre sous le logo.
                     child: ImageFiltered(
                       imageFilter: ui.ImageFilter.blur(sigmaX: 6.0, sigmaY: 6.0),
                       child: Image.asset(
@@ -219,6 +220,7 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                       GestureDetector(
+                        // Assure-toi d'utiliser aussi AuthService dans RegisterSheet si besoin
                         onTap: () => RegisterSheet.show(context),
                         child: const Text(
                           "Créer un compte",

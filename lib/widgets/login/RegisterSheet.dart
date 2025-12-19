@@ -1,6 +1,8 @@
 import 'package:atlas/enum/InputType.dart';
+import 'package:atlas/services/AuthService.dart';
 import 'package:atlas/widgets/login/Toast.dart';
 import 'package:atlas/widgets/login/inputField.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class RegisterSheet extends StatefulWidget {
@@ -21,6 +23,7 @@ class RegisterSheet extends StatefulWidget {
       },
     );
   }
+
 
   @override
   State<RegisterSheet> createState() => _RegisterSheetState();
@@ -85,7 +88,12 @@ class _RegisterSheetState extends State<RegisterSheet> {
               height: 50,
               child: ElevatedButton(
                 onPressed: () {
-                  //logique d'inscription à implémenter.
+                  AuthService().signUp(
+                    email: _regEmailController.text.trim(), 
+                    password: _regPasswordController.text.trim(), 
+                    pseudo: _regNameController.text.trim()
+                  );
+
                   Navigator.pop(context);
                   Toast.show(context, 'Compte créé avec succès !');
                 },
