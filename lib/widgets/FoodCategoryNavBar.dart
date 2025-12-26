@@ -1,7 +1,9 @@
+import 'package:atlas/providers/CategoryProvider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class FoodCategoryNavBar extends StatefulWidget {
-  const FoodCategoryNavBar({Key? key}) : super(key: key);
+  const FoodCategoryNavBar({super.key});
 
   @override
   State<FoodCategoryNavBar> createState() => _FoodCategoryNavBarState();
@@ -10,24 +12,38 @@ class FoodCategoryNavBar extends StatefulWidget {
 class _FoodCategoryNavBarState extends State<FoodCategoryNavBar> {
   int selectedIndex = 0;
 
-  final List<Map<String, dynamic>> categories = [
-    {'icon': 'assets/icon-burger.png', 'label': 'Burger', 'width': 350.0},
-    {'icon': 'assets/icon-pizza.png', 'label': 'Pizza', 'width': 250.0, 'top': 15.0},
-    {'icon': 'assets/icon-drink.png', 'label': 'Boisson', 'width': 330.0, 'top': 0.0},
-    {'icon': 'assets/icon-dessert.png', 'label': 'Dessert', 'width': 250.0, 'top': 10.0},
-  ];
+  @override
+  void initState() {
+    super.initState();
+    // On charge les catégories dès l'initialisation du widget
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<CategoryProvider>(context, listen: false).fetchCategories();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    // On écoute les changements du Provider
+    final categoryProvider = context.watch<CategoryProvider>();
+
+    // 1. État de chargement
+    if (categoryProvider.isLoading) {
+      return const SizedBox(
+        height: 130,
+        child: Center(child: CircularProgressIndicator(color: Colors.black)),
+      );
+    }
+
+    // 3. Affichage de la liste
     return Container(
       height: 130, 
       padding: const EdgeInsets.only(left: 16.0),
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        itemCount: categories.length,
+        itemCount: categoryProvider.categories.length,
         separatorBuilder: (context, index) => const SizedBox(width: 10),
         itemBuilder: (context, index) {
-          final category = categories[index];
+          final category = categoryProvider.categories[index];
           final isSelected = selectedIndex == index;
 
           return GestureDetector(
@@ -37,11 +53,12 @@ class _FoodCategoryNavBarState extends State<FoodCategoryNavBar> {
               });
             },
             child: CategoryItem(
-              imagePath: category['icon']!,
-              label: category['label']!,
+              // On passe les données du modèle
+              imagePath: category.icon,
+              label: category.name,
               isSelected: isSelected,
-              width: category['width'],
-              top: category['top'] ?? 10
+              width: category.width,
+              top: category.top,
             ),
           );
         },
@@ -58,13 +75,13 @@ class CategoryItem extends StatelessWidget {
   final double top;
 
   const CategoryItem({
-    Key? key,
+    super.key,
     required this.imagePath,
     required this.label,
     required this.isSelected,
     required this.width,
     required this.top
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -81,10 +98,11 @@ class CategoryItem extends StatelessWidget {
               decoration: const BoxDecoration(
                  shape: BoxShape.circle,
               ),
-              child: Image.asset(
-                imagePath,
-                fit: BoxFit.contain,
-              ),
+              // ASTUCE : Gestion hybride (Assets locaux ou URL Firebase)
+              // Si la chaîne commence par 'http', on charge depuis le web, sinon depuis les assets
+              child: imagePath.startsWith('http') 
+                  ? Image.network(imagePath, fit: BoxFit.contain)
+                  : Image.asset(imagePath, fit: BoxFit.contain),
             ),
           ),
 

@@ -1,4 +1,5 @@
 import 'package:atlas/models/AppRoutes.dart';
+import 'package:atlas/providers/CategoryProvider.dart';
 import 'package:atlas/providers/UserProvider.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -15,6 +16,7 @@ Future<void> main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => UserProvider()),
+        ChangeNotifierProvider(create: (_) => CategoryProvider())
       ],
       child: const MyApp(),
     ),
