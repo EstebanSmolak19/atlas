@@ -1,7 +1,7 @@
 import 'package:atlas/pages/FirstPage.dart';
-import 'package:atlas/pages/HomePage.dart';
 import 'package:atlas/pages/LoginPage.dart';
 import 'package:atlas/pages/RegiterPage.dart';
+import 'package:atlas/widgets/BottomNavbar.dart';
 import 'package:flutter/cupertino.dart';
 
 class AppRoutes {
@@ -13,7 +13,7 @@ class AppRoutes {
 
   static final Map<String, WidgetBuilder> routes = {
     login    : (context) => const LoginPage(),
-    home     : (context) => const HomePage(),
+    home     : (context) => const BottomNavbar(),
     first    : (context) => const FirstPage(),
     register : (context) => const RegisterPage()
   };
