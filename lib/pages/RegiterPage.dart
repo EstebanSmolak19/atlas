@@ -1,9 +1,11 @@
 import 'dart:ui' as ui;
 import 'package:atlas/enum/InputType.dart';
+import 'package:atlas/providers/UserProvider.dart';
 import 'package:atlas/services/AuthService.dart';
 import 'package:atlas/widgets/login/AuthSheet.dart';
 import 'package:atlas/widgets/login/inputField.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -13,8 +15,7 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
-  final AuthService _authService = AuthService();
-  
+  final AuthService _authService = AuthService();  
   final Color yellowColor = const Color.fromARGB(255, 242, 202, 80);
   final Color scaffoldColor = const Color(0xFFF9F9F9);
 
@@ -74,6 +75,8 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
+   final userProvider = context.watch<UserProvider>();
+
     return Scaffold(
       backgroundColor: scaffoldColor,
       body: SingleChildScrollView(

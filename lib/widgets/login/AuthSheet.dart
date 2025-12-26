@@ -1,9 +1,9 @@
 import 'package:atlas/enum/InputType.dart';
-import 'package:atlas/pages/HomePage.dart';
-import 'package:atlas/services/AuthService.dart';
+import 'package:atlas/providers/UserProvider.dart';
 import 'package:atlas/widgets/login/Toast.dart';
 import 'package:atlas/widgets/login/inputField.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class AuthSheet extends StatefulWidget {
   final bool isLogin;
@@ -48,15 +48,12 @@ class AuthSheet extends StatefulWidget {
 
 class _AuthSheetState extends State<AuthSheet> {
   late bool _isLogin;
-  final AuthService _authService = AuthService();
   
-  // Contrôleurs
   final TextEditingController _pseudoController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
   final Color yellowColor = const Color.fromARGB(255, 242, 202, 80);
-  bool _isLoading = false;
 
   @override
   void initState() {
@@ -72,54 +69,17 @@ class _AuthSheetState extends State<AuthSheet> {
     super.dispose();
   }
 
-  Future<void> _submit() async {
-    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
-      Toast.show(context, 'Veuillez remplir tous les champs obligatoires.');
-      return;
-    }
-    
-    if (!_isLogin && _pseudoController.text.isEmpty) {
-      Toast.show(context, 'Le nom complet est obligatoire pour l\'inscription.');
-      return;
-    }
-
-    setState(() => _isLoading = true);
-
-    try {
-      if (_isLogin) {
-        await _authService.signIn(
-          email: _emailController.text.trim(),
-          password: _passwordController.text.trim(),
-        );
-        
-      } else {
-        await _authService.signUp(
-          email: _emailController.text.trim(),
-          password: _passwordController.text.trim(),
-          pseudo: _pseudoController.text.trim(),
-        );
-      }
-
-      if (mounted) {
-        // Navigator.push(
-        //   context,
-        //   MaterialPageRoute(builder: (context) => const HomePage()),
-        // );
-      }
-
-    } catch (e) {
-      if (mounted) {
-        Toast.show(context, _isLogin ? 'Email ou mot de passe incorrect.' : 'Erreur lors de l\'inscription.');
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-    }
+  /// Bascule entre le mode Connexion et Inscription
+  void _toggleAuthMode() {
+    setState(() {
+      _isLogin = !_isLogin;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final userProvider = context.watch<UserProvider>();
+
     return Padding(
       padding: EdgeInsets.only(
         left: 24,
@@ -168,7 +128,32 @@ class _AuthSheetState extends State<AuthSheet> {
               width: double.infinity,
               height: 50,
               child: ElevatedButton(
-                onPressed: _isLoading ? null : _submit,
+                onPressed: userProvider.isLoading ? null : () {
+                   // Validation locale
+                  if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+                    Toast.show(context, 'Veuillez remplir tous les champs obligatoires.');
+                    return;
+                  }
+                  if (!_isLogin && _pseudoController.text.isEmpty) {
+                    Toast.show(context, 'Le nom complet est obligatoire.');
+                    return;
+                  }
+
+                  if (_isLogin) {
+                    userProvider.signIn(
+                      email: _emailController.text.trim(),
+                      password: _passwordController.text.trim(),
+                      context: context
+                    );
+                  } else {
+                    userProvider.signUp(
+                      email: _emailController.text.trim(),
+                      password: _passwordController.text.trim(),
+                      pseudo: _pseudoController.text.trim(),
+                      context: context
+                    );
+                  }
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: yellowColor,
                   foregroundColor: Colors.black,
@@ -177,7 +162,7 @@ class _AuthSheetState extends State<AuthSheet> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: _isLoading 
+                child: userProvider.isLoading 
                   ? const SizedBox(
                       height: 20, 
                       width: 20, 
@@ -191,6 +176,27 @@ class _AuthSheetState extends State<AuthSheet> {
             ),
 
             const SizedBox(height: 15),
+
+            // Lien pour basculer dynamiquement entre Login et Register
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  _isLogin ? "Pas encore de compte ? " : "Déjà un compte ? ",
+                  style: const TextStyle(fontSize: 14),
+                ),
+                GestureDetector(
+                  onTap: _toggleAuthMode,
+                  child: Text(
+                    _isLogin ? "Créer un compte" : "Se connecter",
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),

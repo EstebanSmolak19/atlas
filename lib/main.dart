@@ -1,4 +1,4 @@
-import 'package:atlas/pages/FirstPage.dart';
+import 'package:atlas/models/AppRoutes.dart';
 import 'package:atlas/providers/UserProvider.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -33,7 +33,8 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.white),
         useMaterial3: true,
       ),
-      home: FirstPage(),
+      initialRoute: AppRoutes.first,
+      routes: AppRoutes.routes
     );
   }
 }

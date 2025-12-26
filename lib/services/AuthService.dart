@@ -5,11 +5,10 @@ class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  /// Permet la création d'un compte utilisateur (Authentificqtion + Document)
   Future<void> signUp({
     required String email,
     required String password,
-    required String pseudo
+    required String pseudo,
   }) async {
     try {
       UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
@@ -17,28 +16,34 @@ class AuthService {
         password: password
       );
 
-      String uid = userCredential.user!.uid;
-
-      await _firestore.collection('users').doc(uid).set({
+      await _firestore.collection('users').doc(userCredential.user!.uid).set({
         "email": email,
         "pseudo": pseudo,
         "points": 0,
-        "premium": false
+        "premium": false,
+        "createdAt": DateTime.now().millisecondsSinceEpoch,
       });
-
     } catch(e) {
-      rethrow;
+      rethrow; // On renvoie l'erreur au Provider
     }
   }
 
-  /// Connexion utilisateur.
+  // Juste la logique Firebase.
   Future<void> signIn({
     required String email,
     required String password,
   }) async {
-    await _auth.signInWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
+    try {
+      await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+    } catch(e) {
+      rethrow; // On renvoie l'erreur au Provider
+    }
+  }
+
+  Future<void> signOut() async {
+    await _auth.signOut();
   }
 }
