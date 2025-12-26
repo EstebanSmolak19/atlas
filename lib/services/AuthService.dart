@@ -5,7 +5,6 @@ class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-
   /// Permet la création d'un compte utilisateur (Authentificqtion + Document)
   Future<void> signUp({
     required String email,

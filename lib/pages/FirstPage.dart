@@ -1,4 +1,5 @@
 import 'package:atlas/AuthGate.dart';
+import 'package:atlas/pages/RegiterPage.dart';
 import 'package:flutter/material.dart';
 import 'dart:ui' as ui;
 
@@ -113,7 +114,8 @@ class FirstPage extends StatelessWidget {
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () {
-                        
+                        Navigator.push(context,
+                        MaterialPageRoute(builder: (context) => RegisterPage()));
                       },
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 20),

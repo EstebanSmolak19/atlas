@@ -5,26 +5,30 @@ import 'package:atlas/widgets/login/AuthSheet.dart';
 import 'package:atlas/widgets/login/inputField.dart';
 import 'package:flutter/material.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class RegisterPage extends StatefulWidget {
+  const RegisterPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _RegisterPageState extends State<RegisterPage> {
   final AuthService _authService = AuthService();
+  
   final Color yellowColor = const Color.fromARGB(255, 242, 202, 80);
   final Color scaffoldColor = const Color(0xFFF9F9F9);
 
+  final TextEditingController _pseudoController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
   bool _isLoading = false;
   String? _errorMessage;
 
-  Future<void> _signIn() async {
-    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+  Future<void> _signUp() async {
+    if (_pseudoController.text.isEmpty || 
+        _emailController.text.isEmpty || 
+        _passwordController.text.isEmpty) {
       setState(() {
         _errorMessage = "Veuillez remplir tous les champs.";
       });
@@ -37,14 +41,19 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     try {
-      await _authService.signIn(
+      await _authService.signUp(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
+        pseudo: _pseudoController.text.trim(),
       );
-      
+
+      if (mounted) {
+        Navigator.of(context).pushReplacementNamed('/home');
+      }
+
     } catch (e) {
       setState(() {
-        _errorMessage = "Email ou mot de passe incorrect.";
+        _errorMessage = "Une erreur est survenue lors de l'inscription. Vérifiez vos informations.";
       });
     } finally {
       if (mounted) {
@@ -57,6 +66,7 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   void dispose() {
+    _pseudoController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -74,7 +84,7 @@ class _LoginPageState extends State<LoginPage> {
               alignment: Alignment.center,
               children: [
                 Container(
-                  height: 350,
+                  height: 300,
                   width: double.infinity,
                   decoration: BoxDecoration(
                     color: yellowColor,
@@ -92,7 +102,7 @@ class _LoginPageState extends State<LoginPage> {
                       imageFilter: ui.ImageFilter.blur(sigmaX: 6.0, sigmaY: 6.0),
                       child: Image.asset(
                         'assets/logo.png',
-                        width: 310, 
+                        width: 260, // Légèrement plus petit
                         fit: BoxFit.contain,
                         color: Colors.black.withOpacity(0.4),
                         colorBlendMode: BlendMode.srcIn,
@@ -106,23 +116,23 @@ class _LoginPageState extends State<LoginPage> {
                   child: Center(
                     child: Image.asset(
                       'assets/logo.png',
-                      width: 300,
+                      width: 250,
                       fit: BoxFit.contain,
                     ),
                   ),
                 ),
 
                 Positioned(
-                  bottom: 50,
+                  bottom: 40,
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       const Text(
-                        "Bienvenue !",
+                        "Rejoignez-nous !",
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontSize: 32,
+                          fontSize: 28,
                           fontWeight: FontWeight.w900,
                           color: Colors.black,
                           letterSpacing: -0.5,
@@ -131,7 +141,7 @@ class _LoginPageState extends State<LoginPage> {
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 40),
                         child: Text(
-                          "Artisanal Terroir Luxe Authentique \nSignature",
+                          "Créez votre compte Atlas",
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 14,
@@ -148,13 +158,19 @@ class _LoginPageState extends State<LoginPage> {
               ],
             ),
 
-            const SizedBox(height: 40),
+            const SizedBox(height: 30),
 
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  InputField(
+                    label: "Pseudo", 
+                    controller: _pseudoController,
+                    type: InputType.text, 
+                  ),
+
                   InputField(
                     label: "Email", 
                     controller: _emailController,
@@ -181,6 +197,7 @@ class _LoginPageState extends State<LoginPage> {
                         textAlign: TextAlign.center,
                       ),
                     ),
+                    const SizedBox(height: 10),
                   ],
 
                   const SizedBox(height: 10),
@@ -189,7 +206,7 @@ class _LoginPageState extends State<LoginPage> {
                     width: double.infinity,
                     height: 55,
                     child: ElevatedButton(
-                      onPressed: _isLoading ? null : _signIn,
+                      onPressed: _isLoading ? null : _signUp,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.black,
                         foregroundColor: Colors.white,
@@ -201,7 +218,7 @@ class _LoginPageState extends State<LoginPage> {
                       child: _isLoading
                           ? const CircularProgressIndicator(color: Colors.white)
                           : const Text(
-                              "Se connecter",
+                              "S'inscrire",
                               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                             ),
                     ),
@@ -213,16 +230,17 @@ class _LoginPageState extends State<LoginPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const Text(
-                        "Pas encore de compte ? ",
+                        "Déjà un compte ? ",
                         style: TextStyle(
                           fontSize: 14,
                           color: Colors.black,
                         ),
                       ),
                       GestureDetector(
-                        onTap: () => AuthSheet.showRegister(context),
+                        onTap: () => AuthSheet.showLogin(context),
+
                         child: const Text(
-                          "Créer un compte",
+                          "Se connecter",
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
