@@ -10,7 +10,7 @@ class Categorymodel {
     required this.name,
     required this.icon,
     required this.width,
-    required this.top
+    required this.top,
   });
 
   Map<String, dynamic> toMap() {

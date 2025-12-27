@@ -1,3 +1,4 @@
+import 'package:atlas/models/AppRoutes.dart';
 import 'package:atlas/providers/CategoryProvider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -15,7 +16,6 @@ class _FoodCategoryNavBarState extends State<FoodCategoryNavBar> {
   @override
   void initState() {
     super.initState();
-    // On charge les catégories dès l'initialisation du widget
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<CategoryProvider>(context, listen: false).fetchCategories();
     });
@@ -23,10 +23,8 @@ class _FoodCategoryNavBarState extends State<FoodCategoryNavBar> {
 
   @override
   Widget build(BuildContext context) {
-    // On écoute les changements du Provider
     final categoryProvider = context.watch<CategoryProvider>();
 
-    // 1. État de chargement
     if (categoryProvider.isLoading) {
       return const SizedBox(
         height: 130,
@@ -34,7 +32,13 @@ class _FoodCategoryNavBarState extends State<FoodCategoryNavBar> {
       );
     }
 
-    // 3. Affichage de la liste
+    if (categoryProvider.categories.isEmpty) {
+      return const SizedBox(
+        height: 130,
+        child: Center(child: Text("Aucune catégorie")),
+      );
+    }
+
     return Container(
       height: 130, 
       padding: const EdgeInsets.only(left: 16.0),
@@ -51,9 +55,13 @@ class _FoodCategoryNavBarState extends State<FoodCategoryNavBar> {
               setState(() {
                 selectedIndex = index;
               });
+              
+              //Récupère le nom de la catégorie.
+              String categoryName = categoryProvider.categories[index].name;
+
+              Navigator.pushNamed(context, AppRoutes.getRouteByName(categoryName)); 
             },
             child: CategoryItem(
-              // On passe les données du modèle
               imagePath: category.icon,
               label: category.name,
               isSelected: isSelected,
@@ -98,8 +106,6 @@ class CategoryItem extends StatelessWidget {
               decoration: const BoxDecoration(
                  shape: BoxShape.circle,
               ),
-              // ASTUCE : Gestion hybride (Assets locaux ou URL Firebase)
-              // Si la chaîne commence par 'http', on charge depuis le web, sinon depuis les assets
               child: imagePath.startsWith('http') 
                   ? Image.network(imagePath, fit: BoxFit.contain)
                   : Image.asset(imagePath, fit: BoxFit.contain),
