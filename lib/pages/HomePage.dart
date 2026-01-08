@@ -1,4 +1,5 @@
 import 'package:atlas/models/UserModel.dart';
+import 'package:atlas/providers/ProductProvider.dart';
 import 'package:atlas/services/UserService.dart';
 import 'package:atlas/widgets/FoodCategoryNavBar.dart';
 import 'package:atlas/widgets/PopularItems.dart';
@@ -7,6 +8,7 @@ import 'package:atlas/widgets/appbar/customAppbar.dart';
 import 'package:flutter/material.dart';
 import 'dart:ui' as ui;
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -157,7 +159,6 @@ class _HomePageState extends State<HomePage> {
                   ),
                   const SizedBox(height: 15),
 
-                  // Dots sous l'affiche
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -193,11 +194,11 @@ class _HomePageState extends State<HomePage> {
                     ],
                   ),
                 
-                  FoodCategoryNavBar(),
+                  const FoodCategoryNavBar(),
 
                   const SizedBox(height: 20),
                   TitleSection(title: 'Popular Items', size: 18),
-                  PopularItems(),
+                  const PopularItems(),
                   const SizedBox(height: 150),
                 ],
               ),
