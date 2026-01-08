@@ -1,3 +1,4 @@
+import 'package:atlas/models/AppRoutes.dart';
 import 'package:flutter/material.dart';
 
 class PopularItems extends StatefulWidget {
@@ -95,7 +96,9 @@ class _PopularItemsState extends State<PopularItems> {
                         ),
 
                         ElevatedButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            Navigator.pushNamed(context, AppRoutes.detailPage);
+                          },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.white,
                             foregroundColor: Colors.black,

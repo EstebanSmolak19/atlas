@@ -1,6 +1,6 @@
 import 'package:atlas/pages/FirstPage.dart';
 import 'package:atlas/providers/UserProvider.dart';
-import 'package:atlas/widgets/customAppbar.dart';
+import 'package:atlas/widgets/appbar/customAppbar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:ui' as ui;

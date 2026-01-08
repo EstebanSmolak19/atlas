@@ -2,7 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class ProductAppbar extends StatelessWidget implements PreferredSizeWidget{
-  const ProductAppbar({super.key});
+  final bool showBackground;
+  final bool showTitle;
+
+  const ProductAppbar({
+      super.key,
+      this.showBackground = true,
+      this.showTitle = true
+    });
 
   @override
   Size get preferredSize => const Size.fromHeight(70);
@@ -11,8 +18,8 @@ class ProductAppbar extends StatelessWidget implements PreferredSizeWidget{
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      backgroundColor: yellowColor,
-      title: Text(
+      backgroundColor: showBackground ? yellowColor : Colors.transparent,
+      title: showTitle ? Text(
         "Carte",
         style: GoogleFonts.lilitaOne(
           fontSize: 30,
@@ -23,7 +30,7 @@ class ProductAppbar extends StatelessWidget implements PreferredSizeWidget{
               .withOpacity(0.8),
           height: 1.0,
         ),
-      ),
+      ) : null ,
     );
   }
 }

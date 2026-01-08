@@ -3,7 +3,7 @@ import 'package:atlas/services/UserService.dart';
 import 'package:atlas/widgets/FoodCategoryNavBar.dart';
 import 'package:atlas/widgets/PopularItems.dart';
 import 'package:atlas/widgets/TitleSection.dart';
-import 'package:atlas/widgets/customAppbar.dart';
+import 'package:atlas/widgets/appbar/customAppbar.dart';
 import 'package:flutter/material.dart';
 import 'dart:ui' as ui;
 import 'package:google_fonts/google_fonts.dart';

@@ -1,5 +1,5 @@
-import 'package:atlas/widgets/customAppbar.dart';
-import 'package:atlas/widgets/product-pages/ProductAppbar.dart';
+import 'package:atlas/widgets/appbar/customAppbar.dart';
+import 'package:atlas/widgets/appbar/ProductAppbar.dart';
 import 'package:flutter/material.dart';
 
 class BurgerPage extends StatefulWidget {
