@@ -73,7 +73,7 @@ class _CommandePageState extends State<CommandePage> {
                             ),
                             const SizedBox(height: 5),
                             Text(
-                              "${item.product.price} £",
+                              "${item.product.price}€",
                               style: const TextStyle(
                                 fontWeight: FontWeight.w900,
                                 fontSize: 16,
@@ -137,7 +137,7 @@ class _CommandePageState extends State<CommandePage> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text("Sous-total", style: TextStyle(color: Colors.grey, fontSize: 16)),
-                    Text("${cartProvider.subTotal.toStringAsFixed(2)} £", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    Text("${cartProvider.subTotal.toStringAsFixed(2)}€", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                   ],
                 ),
                 const SizedBox(height: 10),
@@ -153,7 +153,7 @@ class _CommandePageState extends State<CommandePage> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text("Frais de livraison", style: TextStyle(color: Colors.grey, fontSize: 16)),
-                    Text("${cartProvider.deliveryFee.toStringAsFixed(2)} £", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    Text("${cartProvider.deliveryFee.toStringAsFixed(2)}€", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                   ],
                 ),
                 const Padding(
@@ -162,7 +162,6 @@ class _CommandePageState extends State<CommandePage> {
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  // Aligne le texte "Total" verticalement au centre par rapport à la colonne de prix
                   crossAxisAlignment: CrossAxisAlignment.center, 
                   children: [
                     const Text("Total", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20)),
@@ -173,7 +172,7 @@ class _CommandePageState extends State<CommandePage> {
                             crossAxisAlignment: CrossAxisAlignment.end, 
                             children: [
                               Text(
-                                "${cartProvider.total.toStringAsFixed(2)} £",
+                                "${cartProvider.total.toStringAsFixed(2)}€",
                                 style: const TextStyle(
                                   decoration: TextDecoration.lineThrough, 
                                   color: Colors.grey,
@@ -181,7 +180,7 @@ class _CommandePageState extends State<CommandePage> {
                                 ),
                               ),
                               Text(
-                                "${(cartProvider.total * 0.7).toStringAsFixed(2)} £", 
+                                "${(cartProvider.total * 0.9).toStringAsFixed(2)}€", 
                                 style: const TextStyle(
                                   fontWeight: FontWeight.w900, 
                                   fontSize: 20, 

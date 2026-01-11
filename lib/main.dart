@@ -1,6 +1,7 @@
 import 'package:atlas/models/AppRoutes.dart';
 import 'package:atlas/providers/CategoryProvider.dart';
 import 'package:atlas/providers/CommandeProvider.dart';
+import 'package:atlas/providers/FavoriteProvider.dart';
 import 'package:atlas/providers/ProductProvider.dart';
 import 'package:atlas/providers/UserProvider.dart';
 import 'package:flutter/material.dart';
@@ -20,7 +21,8 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => UserProvider()),
         ChangeNotifierProvider(create: (_) => CategoryProvider()),
         ChangeNotifierProvider(create: (_) => ProductProvider()),
-        ChangeNotifierProvider(create: (_) => Commandeprovider())
+        ChangeNotifierProvider(create: (_) => Commandeprovider()),
+        ChangeNotifierProvider(create: (_) => FavoriteProvider())
       ],
       child: const MyApp(),
     ),

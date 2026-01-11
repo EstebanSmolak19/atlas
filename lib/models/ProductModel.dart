@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 class ProductModel {
+  final String id;
   final double average;
   final String description;
   final String name;
@@ -11,6 +12,7 @@ class ProductModel {
   final int rating_count;
 
   ProductModel({
+    required this.id,
     required this.average,
     required this.description,
     required this.name,
@@ -25,14 +27,19 @@ class ProductModel {
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'average': average,
-      'decription': description,
+      'description': description, 
       'name': name,
+      'price': price,   
+      'calorie': calorie,
+      'time': time,    
+      'type': type,     
       'rating_count': rating_count,
     };
   }
 
   factory ProductModel.fromMap(Map<String, dynamic> map) {
     return ProductModel(
+      id: map['id'] as String,
       average: (map['average'] as num?)?.toDouble() ?? 0.0,
       description: map['description'] as String,
       name: map['name'] as String,

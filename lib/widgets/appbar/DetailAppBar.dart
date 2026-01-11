@@ -1,3 +1,5 @@
+import 'package:atlas/models/ProductModel.dart';
+import 'package:atlas/widgets/icons/favoriteIcon.dart';
 import 'package:flutter/material.dart';
 
 class DetailAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -9,13 +11,15 @@ class DetailAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final product = ModalRoute.of(context)!.settings.arguments as ProductModel;
+
     return AppBar(
       backgroundColor: yellowColor,
       actions: [
         Padding(padding: EdgeInsetsGeometry.only(right: 10),
-        child: IconButton(
-          icon: const Icon(Icons.favorite_outline, color: Colors.black, size: 28),
-          onPressed: () {},
+        child: FavoriteIconButton(
+            product: product,
+            color: Colors.black,
           )
         )
       ],

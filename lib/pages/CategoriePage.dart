@@ -15,6 +15,7 @@ class CategoryPage extends StatefulWidget {
 
 class _CategoryPageState extends State<CategoryPage> {
   ProductType? _currentType;
+  bool isMenu = false; 
 
   @override
   void didChangeDependencies() {
@@ -86,6 +87,79 @@ class _CategoryPageState extends State<CategoryPage> {
                   ),
                 );
               },
+            ),
+          ),
+
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+            height: 45,
+            decoration: BoxDecoration(
+              color: Colors.grey[200],
+              borderRadius: BorderRadius.circular(25),
+            ),
+            child: Stack(
+              children: [
+                AnimatedAlign(
+                  alignment: isMenu ? Alignment.centerRight : Alignment.centerLeft,
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeOutExpo,
+                  child: FractionallySizedBox(
+                    widthFactor: 0.5,
+                    child: Container(
+                      margin: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(25),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.translucent,
+                        onTap: () => setState(() => isMenu = false),
+                        child: Center(
+                          child: AnimatedDefaultTextStyle(
+                            duration: const Duration(milliseconds: 300),
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: !isMenu ? Colors.black : Colors.grey[600],
+                            ),
+                            child: const Text("Choix simple"),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.translucent,
+                        onTap: () => setState(() => isMenu = true),
+                        child: Center(
+                          child: AnimatedDefaultTextStyle(
+                            duration: const Duration(milliseconds: 300),
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: isMenu ? Colors.black : Colors.grey[600],
+                            ),
+                            child: const Text("Menu"),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
 
