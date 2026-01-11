@@ -1,9 +1,8 @@
 import 'package:atlas/pages/FirstPage.dart';
 import 'package:atlas/providers/UserProvider.dart';
-import 'package:atlas/widgets/customAppbar.dart';
+import 'package:atlas/widgets/appbar/customAppbar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'dart:ui' as ui;
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -27,9 +26,6 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     final user = Provider.of<UserProvider>(context).user;
-
-    final String userEmail = user?.email ?? "";
-    final String userName = user?.pseudo ?? "";
 
     return Scaffold(
       backgroundColor: scaffoldColor,
@@ -134,20 +130,12 @@ class _ProfilePageState extends State<ProfilePage> {
                           Column(
                               children: [
                                 Text(
-                                  userName,
+                                  user!.pseudo,
                                   style: const TextStyle(
                                     fontSize: 26,
                                     fontWeight: FontWeight.w900,
                                     color: Colors.black,
                                     letterSpacing: -0.5,
-                                  ),
-                                ),
-                                Text(
-                                  userEmail,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.black.withOpacity(0.6),
                                   ),
                                 ),
                               ],
@@ -201,8 +189,9 @@ class _ProfilePageState extends State<ProfilePage> {
                                       ),
                                     ),
                                     const SizedBox(height: 5),
-                                    const Text(
-                                      "2,450 pts",
+
+                                    Text(
+                                      "${user.points} pts",
                                       style: TextStyle(
                                         color: Colors.white,
                                         fontSize: 34,

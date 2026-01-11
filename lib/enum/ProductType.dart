@@ -1,0 +1,4 @@
+enum ProductType {
+  burger,
+  pizza,
+}

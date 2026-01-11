@@ -3,7 +3,7 @@ import 'package:atlas/services/UserService.dart';
 import 'package:atlas/widgets/FoodCategoryNavBar.dart';
 import 'package:atlas/widgets/PopularItems.dart';
 import 'package:atlas/widgets/TitleSection.dart';
-import 'package:atlas/widgets/customAppbar.dart';
+import 'package:atlas/widgets/appbar/customAppbar.dart';
 import 'package:flutter/material.dart';
 import 'dart:ui' as ui;
 import 'package:google_fonts/google_fonts.dart';
@@ -157,7 +157,6 @@ class _HomePageState extends State<HomePage> {
                   ),
                   const SizedBox(height: 15),
 
-                  // Dots sous l'affiche
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -193,11 +192,11 @@ class _HomePageState extends State<HomePage> {
                     ],
                   ),
                 
-                  FoodCategoryNavBar(),
+                  const FoodCategoryNavBar(),
 
                   const SizedBox(height: 20),
                   TitleSection(title: 'Popular Items', size: 18),
-                  PopularItems(),
+                  const PopularItems(),
                   const SizedBox(height: 150),
                 ],
               ),

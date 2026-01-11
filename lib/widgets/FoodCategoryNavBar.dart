@@ -1,7 +1,11 @@
+import 'package:atlas/enum/ProductType.dart';
+import 'package:atlas/models/AppRoutes.dart';
+import 'package:atlas/providers/CategoryProvider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class FoodCategoryNavBar extends StatefulWidget {
-  const FoodCategoryNavBar({Key? key}) : super(key: key);
+  const FoodCategoryNavBar({super.key});
 
   @override
   State<FoodCategoryNavBar> createState() => _FoodCategoryNavBarState();
@@ -10,24 +14,51 @@ class FoodCategoryNavBar extends StatefulWidget {
 class _FoodCategoryNavBarState extends State<FoodCategoryNavBar> {
   int selectedIndex = 0;
 
-  final List<Map<String, dynamic>> categories = [
-    {'icon': 'assets/icon-burger.png', 'label': 'Burger', 'width': 350.0},
-    {'icon': 'assets/icon-pizza.png', 'label': 'Pizza', 'width': 250.0, 'top': 15.0},
-    {'icon': 'assets/icon-drink.png', 'label': 'Boisson', 'width': 330.0, 'top': 0.0},
-    {'icon': 'assets/icon-dessert.png', 'label': 'Dessert', 'width': 250.0, 'top': 10.0},
-  ];
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<CategoryProvider>(context, listen: false).fetchCategories();
+    });
+  }
+
+  ProductType _mapStringToEnum(String categoryName) {
+    try {
+      return ProductType.values.firstWhere(
+        (e) => e.name.toLowerCase() == categoryName.toLowerCase()
+      );
+    } catch (e) {
+      return ProductType.burger; 
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final categoryProvider = context.watch<CategoryProvider>();
+
+    if (categoryProvider.isLoading) {
+      return const SizedBox(
+        height: 130,
+        child: Center(child: CircularProgressIndicator(color: Colors.black)),
+      );
+    }
+
+    if (categoryProvider.categories.isEmpty) {
+      return const SizedBox(
+        height: 130,
+        child: Center(child: Text("Aucune catégorie")),
+      );
+    }
+
     return Container(
       height: 130, 
       padding: const EdgeInsets.only(left: 16.0),
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        itemCount: categories.length,
+        itemCount: categoryProvider.categories.length,
         separatorBuilder: (context, index) => const SizedBox(width: 10),
         itemBuilder: (context, index) {
-          final category = categories[index];
+          final category = categoryProvider.categories[index];
           final isSelected = selectedIndex == index;
 
           return GestureDetector(
@@ -35,13 +66,21 @@ class _FoodCategoryNavBarState extends State<FoodCategoryNavBar> {
               setState(() {
                 selectedIndex = index;
               });
+
+              ProductType type = _mapStringToEnum(category.name);
+
+              Navigator.pushNamed(
+                context, 
+                AppRoutes.categoryPage, 
+                arguments: type
+              ); 
             },
             child: CategoryItem(
-              imagePath: category['icon']!,
-              label: category['label']!,
+              imagePath: category.icon,
+              label: category.name,
               isSelected: isSelected,
-              width: category['width'],
-              top: category['top'] ?? 10
+              width: category.width,
+              top: category.top,
             ),
           );
         },
@@ -58,13 +97,13 @@ class CategoryItem extends StatelessWidget {
   final double top;
 
   const CategoryItem({
-    Key? key,
+    super.key,
     required this.imagePath,
     required this.label,
     required this.isSelected,
     required this.width,
     required this.top
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -81,10 +120,9 @@ class CategoryItem extends StatelessWidget {
               decoration: const BoxDecoration(
                  shape: BoxShape.circle,
               ),
-              child: Image.asset(
-                imagePath,
-                fit: BoxFit.contain,
-              ),
+              child: imagePath.startsWith('http') 
+                  ? Image.network(imagePath, fit: BoxFit.contain)
+                  : Image.asset(imagePath, fit: BoxFit.contain),
             ),
           ),
 

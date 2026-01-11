@@ -1,4 +1,7 @@
+import 'package:atlas/models/AppRoutes.dart';
+import 'package:atlas/providers/ProductProvider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class PopularItems extends StatefulWidget {
   const PopularItems({super.key});
@@ -9,17 +12,35 @@ class PopularItems extends StatefulWidget {
 
 class _PopularItemsState extends State<PopularItems> {
   final Color yellowColor = const Color.fromARGB(255, 250, 215, 109);
-  final Color grayColor = Color.fromARGB(255, 51, 41, 38).withOpacity(0.6);
+  final Color grayColor = const Color.fromARGB(255, 51, 41, 38).withOpacity(0.6);
 
-  final List<Map<String, dynamic>> items = [
-    {'icon': "assets/pizza1.png", 'label': "Pizza Royale", 'note': 4.5, 'price': "19.90"},
-    {'icon': "assets/pizza1.png", 'label': "Pizza Cheese", 'note': 4.7, 'price': "17.99"},
-    {'icon': "assets/pizza1.png", 'label': "Burger King", 'note': 4.2, 'price': "10.99"},
-    {'icon': "assets/pizza1.png", 'label': "Burger King", 'note': 3.9, 'price': "11.99"},
-  ];
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<ProductProvider>(context, listen: false).fetchPopularItems();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    final productProvider = context.watch<ProductProvider>();
+    final items = productProvider.popularItems;
+
+    if (productProvider.isLoading) {
+      return const SizedBox(
+        height: 250,
+        child: Center(child: CircularProgressIndicator(color: Colors.black)),
+      );
+    }
+
+    if (items.isEmpty) {
+      return const SizedBox(
+        height: 250,
+        child: Center(child: Text("Aucun produit populaire")),
+      );
+    }
+
     return Container(
       height: 250, 
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -37,7 +58,6 @@ class _PopularItemsState extends State<PopularItems> {
               clipBehavior: Clip.none, 
               children: [
                 
-                // CARD
                 Positioned(
                   top: 45, 
                   bottom: 0,
@@ -60,11 +80,13 @@ class _PopularItemsState extends State<PopularItems> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          item['label'],
+                          item.name,
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 8),
                         Row(
@@ -73,7 +95,7 @@ class _PopularItemsState extends State<PopularItems> {
                             const SizedBox(width: 4), 
 
                             Text(
-                              "21 min", 
+                              "${item.time.toString()} min", 
                               style: TextStyle(
                                 color: grayColor,
                                 fontWeight: FontWeight.bold,
@@ -85,7 +107,7 @@ class _PopularItemsState extends State<PopularItems> {
                             const SizedBox(width: 4), 
 
                             Text(
-                              "${item['note']}",
+                              "${item.average}",
                               style: TextStyle(
                                 color: Colors.grey[800],
                                 fontWeight: FontWeight.bold,
@@ -95,7 +117,9 @@ class _PopularItemsState extends State<PopularItems> {
                         ),
 
                         ElevatedButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            Navigator.pushNamed(context, AppRoutes.detailPage, arguments: item);
+                          },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.white,
                             foregroundColor: Colors.black,
@@ -107,8 +131,8 @@ class _PopularItemsState extends State<PopularItems> {
                             ),
                           ),
                           child: Text(
-                            item['price'] + '£',
-                            style: TextStyle(
+                            "${item.price.toString()}€",
+                            style: const TextStyle(
                                 fontWeight: FontWeight.bold),
                           ),
                         )
@@ -126,9 +150,8 @@ class _PopularItemsState extends State<PopularItems> {
                         shape: BoxShape.circle,
                       ),
                       child: Image.asset(
-                        item['icon'],
-                        fit: BoxFit.contain,
-                      ),
+                        'assets/pizza1.png', 
+                        fit: BoxFit.contain),
                     ),
                   ),
                 ),
