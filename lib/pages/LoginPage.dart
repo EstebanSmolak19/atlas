@@ -51,7 +51,6 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                 ),
-                
                 Positioned(
                   top: 65, 
                   child: Center(
