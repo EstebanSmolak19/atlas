@@ -1,9 +1,61 @@
+import 'dart:async';
 import 'package:atlas/models/AppRoutes.dart';
 import 'package:flutter/material.dart';
 import 'dart:ui' as ui;
 
-class FirstPage extends StatelessWidget {
+class FirstPage extends StatefulWidget {
   const FirstPage({super.key});
+
+  @override
+  State<FirstPage> createState() => _FirstPageState();
+}
+
+class _FirstPageState extends State<FirstPage> {
+  final PageController _pageController = PageController();
+  int _currentPage = 0;
+  Timer? _timer;
+
+  final List<Map<String, String>> _slides = [
+    {
+      "title": "Comblez vos envies\nEt déballez\nDu délice.",
+      "subtitle": "Des moments savoureux, livrés chez vous - Votre expérience culinaire redéfinie.",
+    },
+    {
+      "title": "Livraison Rapide\nDirectement\nChez vous.",
+      "subtitle": "Suivez votre commande en temps réel et dégustez vos plats préférés sans attendre.",
+    },
+    {
+      "title": "Le Meilleur\nDe la Cuisine\nLocale.",
+      "subtitle": "Soutenez vos restaurants préférés et découvrez de nouvelles saveurs authentiques.",
+    },
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(const Duration(seconds: 8), (Timer timer) {
+      if (_currentPage < _slides.length - 1) {
+        _currentPage++;
+      } else {
+        _currentPage = 0;
+      }
+
+      if (_pageController.hasClients) {
+        _pageController.animateToPage(
+          _currentPage,
+          duration: const Duration(milliseconds: 1000),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _pageController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,8 +70,6 @@ class FirstPage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-
-              //image burger
               Expanded(
                 flex: 5,
                 child: Center(
@@ -46,41 +96,60 @@ class FirstPage extends StatelessWidget {
                   ),
                 ),
               ),
+              
               const SizedBox(height: 20),
-              Text(
-                "Comblez vos envies\nEt déballez\nDu délice.",
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: darkColor,
-                  height: 1.2,
-                  fontFamily: 'Poppins',
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                "Des moments savoureux, livrés chez vous - Votre expérience culinaire redéfinie.",
-                style: TextStyle(
-                  fontSize: 14,
-                  color: darkColor.withOpacity(0.7),
-                  height: 1.5,
-                ),
-              ),
-              const SizedBox(height: 30),
 
-              //Dots
+              Expanded(
+                flex: 3,
+                child: PageView.builder(
+                  controller: _pageController,
+                  itemCount: _slides.length,
+                  onPageChanged: (int index) {
+                    setState(() {
+                      _currentPage = index;
+                    });
+                  },
+                  itemBuilder: (context, index) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _slides[index]["title"]!,
+                          style: TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            color: darkColor,
+                            height: 1.2,
+                            fontFamily: 'Poppins',
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          _slides[index]["subtitle"]!,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: darkColor.withOpacity(0.7),
+                            height: 1.5,
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _buildDot(isActive: true, color: darkColor),
-                  const SizedBox(width: 8),
-                  _buildDot(isActive: false, color: darkColor),
-                  const SizedBox(width: 8),
-                  _buildDot(isActive: false, color: darkColor),
-                ],
+                children: List.generate(
+                  _slides.length,
+                  (index) => _buildDot(
+                    isActive: index == _currentPage, 
+                    color: darkColor
+                  ),
+                ),
               ),
 
-              const SizedBox(height: 50),
+              const SizedBox(height: 30),
 
               Row(
                 children: [
@@ -108,7 +177,7 @@ class FirstPage extends StatelessWidget {
                   ),
 
                   const SizedBox(width: 16),
-                  //Boutons
+                  
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () {
@@ -143,7 +212,9 @@ class FirstPage extends StatelessWidget {
   }
 
   Widget _buildDot({required bool isActive, required Color color}) {
-    return Container(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300), 
+      margin: const EdgeInsets.symmetric(horizontal: 4),
       width: isActive ? 24 : 8,
       height: 8,
       decoration: BoxDecoration(

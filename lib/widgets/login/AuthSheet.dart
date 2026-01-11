@@ -69,13 +69,6 @@ class _AuthSheetState extends State<AuthSheet> {
     super.dispose();
   }
 
-  /// Bascule entre le mode Connexion et Inscription
-  void _toggleAuthMode() {
-    setState(() {
-      _isLogin = !_isLogin;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     final userProvider = context.watch<UserProvider>();
@@ -177,7 +170,6 @@ class _AuthSheetState extends State<AuthSheet> {
 
             const SizedBox(height: 15),
 
-            // Lien pour basculer dynamiquement entre Login et Register
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -186,7 +178,7 @@ class _AuthSheetState extends State<AuthSheet> {
                   style: const TextStyle(fontSize: 14),
                 ),
                 GestureDetector(
-                  onTap: _toggleAuthMode,
+                  onTap: () => Navigator.pop(context), // Ferme le modal
                   child: Text(
                     _isLogin ? "Créer un compte" : "Se connecter",
                     style: const TextStyle(
