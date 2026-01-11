@@ -95,7 +95,7 @@ class _PopularItemsState extends State<PopularItems> {
                             const SizedBox(width: 4), 
 
                             Text(
-                              "21 min", 
+                              "${item.time.toString()} min", 
                               style: TextStyle(
                                 color: grayColor,
                                 fontWeight: FontWeight.bold,
@@ -131,7 +131,7 @@ class _PopularItemsState extends State<PopularItems> {
                             ),
                           ),
                           child: Text(
-                            "12£",
+                            "${item.prize.toString()}€",
                             style: const TextStyle(
                                 fontWeight: FontWeight.bold),
                           ),

@@ -1,3 +1,4 @@
+import 'package:atlas/models/ProductModel.dart';
 import 'package:atlas/widgets/QtyBtn.dart';
 import 'package:atlas/widgets/appbar/detailAppBar.dart';
 import 'package:atlas/widgets/infoBadge.dart';
@@ -17,6 +18,7 @@ class _DetailPageState extends State<DetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    final product = ModalRoute.of(context)!.settings.arguments as ProductModel;
     return Scaffold(
       backgroundColor: yellowColor,
       appBar: const DetailAppBar(),
@@ -69,14 +71,14 @@ class _DetailPageState extends State<DetailPage> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        "Pizza Royale",
+                        product.name,
                         style: GoogleFonts.lilitaOne(
                           fontSize: 28,
                           color: Colors.black,
                         ),
                       ),
                       Text(
-                        "19.90 £",
+                        "${product.prize.toString()}€",
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.w900,
@@ -90,11 +92,11 @@ class _DetailPageState extends State<DetailPage> {
 
                   Row(
                     children: [
-                      buildInfoBadge(Icons.star, "4.8", Colors.orange),
+                      buildInfoBadge(Icons.star, product.average.toString(), Colors.orange),
                       const SizedBox(width: 20),
-                      buildInfoBadge(Icons.local_fire_department, "520 kcal", Colors.redAccent),
+                      buildInfoBadge(Icons.local_fire_department, "${product.calorie.toString()} kcal", Colors.redAccent),
                       const SizedBox(width: 20),
-                      buildInfoBadge(Icons.access_time_filled, "25 min", Colors.blueGrey),
+                      buildInfoBadge(Icons.access_time_filled, "${product.time.toString()} min", Colors.blueGrey),
                     ],
                   ),
 
@@ -109,7 +111,7 @@ class _DetailPageState extends State<DetailPage> {
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    "Une délicieuse pizza garnie de jambon, champignons frais, olives noires et d'une généreuse couche de mozzarella fondante. Un classique indémodable pour les gourmands !",
+                    product.description,
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.grey[600],
