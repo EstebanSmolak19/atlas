@@ -1,9 +1,12 @@
 import 'package:atlas/models/ProductModel.dart';
+import 'package:atlas/providers/CommandeProvider.dart';
 import 'package:atlas/widgets/QtyBtn.dart';
 import 'package:atlas/widgets/appbar/detailAppBar.dart';
 import 'package:atlas/widgets/infoBadge.dart';
+import 'package:atlas/widgets/login/Toast.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 class DetailPage extends StatefulWidget {
   const DetailPage({super.key});
@@ -19,6 +22,8 @@ class _DetailPageState extends State<DetailPage> {
   @override
   Widget build(BuildContext context) {
     final product = ModalRoute.of(context)!.settings.arguments as ProductModel;
+    final commandeProvider = context.watch<Commandeprovider>();
+
     return Scaffold(
       backgroundColor: yellowColor,
       appBar: const DetailAppBar(),
@@ -154,7 +159,10 @@ class _DetailPageState extends State<DetailPage> {
 
                       Expanded(
                         child: ElevatedButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            commandeProvider.addItem(product, quantity);
+                            Toast.show(context, "${quantity} ${product.name} ajouté au panier !");
+                          },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.black,
                             foregroundColor: Colors.white,

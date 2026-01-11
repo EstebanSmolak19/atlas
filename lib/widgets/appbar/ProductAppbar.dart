@@ -4,11 +4,13 @@ import 'package:google_fonts/google_fonts.dart';
 class ProductAppbar extends StatelessWidget implements PreferredSizeWidget{
   final bool showBackground;
   final bool showTitle;
+  final String title;
 
   const ProductAppbar({
       super.key,
       this.showBackground = true,
-      this.showTitle = true
+      this.showTitle = true,
+      this.title = "Carte"
     });
 
   @override
@@ -20,7 +22,7 @@ class ProductAppbar extends StatelessWidget implements PreferredSizeWidget{
     return AppBar(
       backgroundColor: showBackground ? yellowColor : Colors.transparent,
       title: showTitle ? Text(
-        "Carte",
+        title,
         style: GoogleFonts.lilitaOne(
           fontSize: 30,
           fontWeight: FontWeight.normal,

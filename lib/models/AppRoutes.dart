@@ -1,4 +1,5 @@
 import 'package:atlas/pages/CategoriePage.dart';
+import 'package:atlas/pages/CommandePage.dart';
 import 'package:atlas/pages/DetailPage.dart';
 import 'package:atlas/pages/FirstPage.dart';
 import 'package:atlas/pages/LoginPage.dart';
@@ -14,6 +15,7 @@ class AppRoutes {
   static const String burgerPage = '/categorie-page';
   static const String detailPage = '/details';
   static const String categoryPage = 'categoryPage';
+  static const String commande = '/commande';
 
   static Map<String, String> get _dynamicCategoryMap => <String, String> { 
     'Burger': burgerPage,
@@ -30,6 +32,7 @@ class AppRoutes {
     first        : (context) => const FirstPage(),
     register     : (context) => const RegisterPage(),
     categoryPage : (context) => const CategoryPage(),
-    detailPage   : (context) => const DetailPage()
+    detailPage   : (context) => const DetailPage(),
+    commande     : (context) => const CommandePage()
   };
 }

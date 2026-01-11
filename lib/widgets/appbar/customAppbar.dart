@@ -1,3 +1,4 @@
+import 'package:atlas/models/AppRoutes.dart';
 import 'package:flutter/material.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -26,7 +27,9 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
         IconButton(
           icon: const Icon(Icons.shopping_cart_checkout, color: Colors.black, size: 28),
-          onPressed: () {},
+          onPressed: () {
+            Navigator.pushNamed(context, AppRoutes.commande);
+          },
         ),
         const SizedBox(width: 12),
       ],
