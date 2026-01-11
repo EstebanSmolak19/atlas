@@ -75,7 +75,6 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
-   final userProvider = context.watch<UserProvider>();
 
     return Scaffold(
       backgroundColor: scaffoldColor,

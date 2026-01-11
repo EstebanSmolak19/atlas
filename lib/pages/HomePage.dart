@@ -1,5 +1,4 @@
 import 'package:atlas/models/UserModel.dart';
-import 'package:atlas/providers/ProductProvider.dart';
 import 'package:atlas/services/UserService.dart';
 import 'package:atlas/widgets/FoodCategoryNavBar.dart';
 import 'package:atlas/widgets/PopularItems.dart';
@@ -8,7 +7,6 @@ import 'package:atlas/widgets/appbar/customAppbar.dart';
 import 'package:flutter/material.dart';
 import 'dart:ui' as ui;
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});

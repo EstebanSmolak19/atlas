@@ -3,7 +3,6 @@ import 'package:atlas/providers/UserProvider.dart';
 import 'package:atlas/widgets/appbar/customAppbar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'dart:ui' as ui;
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});

@@ -2,7 +2,6 @@ import 'package:atlas/models/AppRoutes.dart';
 import 'package:atlas/models/UserModel.dart';
 import 'package:atlas/services/AuthService.dart';
 import 'package:atlas/services/UserService.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class UserProvider with ChangeNotifier {
