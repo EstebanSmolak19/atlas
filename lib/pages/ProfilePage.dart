@@ -1,4 +1,5 @@
-import 'package:atlas/pages/FirstPage.dart';
+import 'package:atlas/models/AppRoutes.dart';
+import 'package:atlas/providers/CommandeProvider.dart';
 import 'package:atlas/providers/UserProvider.dart';
 import 'package:atlas/widgets/appbar/customAppbar.dart';
 import 'package:flutter/material.dart';
@@ -25,7 +26,8 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    final user = Provider.of<UserProvider>(context).user;
+    final userProvider = context.watch<UserProvider>();
+    final commandeProvider = context.watch<Commandeprovider>();
 
     return Scaffold(
       backgroundColor: scaffoldColor,
@@ -130,7 +132,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           Column(
                               children: [
                                 Text(
-                                  user!.pseudo,
+                                  userProvider.user!.pseudo,
                                   style: const TextStyle(
                                     fontSize: 26,
                                     fontWeight: FontWeight.w900,
@@ -191,7 +193,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                     const SizedBox(height: 5),
 
                                     Text(
-                                      "${user.points} pts",
+                                      "${userProvider.user!.points} pts",
                                       style: TextStyle(
                                         color: Colors.white,
                                         fontSize: 34,
@@ -257,13 +259,9 @@ class _ProfilePageState extends State<ProfilePage> {
                       const SizedBox(height: 40),
                       TextButton(
                         onPressed: () async {
-                          await Provider.of<UserProvider>(context, listen: false).logout();
-                          if (context.mounted) {
-                            Navigator.of(context).pushAndRemoveUntil(
-                              MaterialPageRoute(builder: (context) => const FirstPage()),
-                              (route) => false,
-                            );
-                          }
+                          await userProvider.logout();
+                          commandeProvider.clearCart();
+                          if (context.mounted) Navigator.pushReplacementNamed(context, AppRoutes.first);
                         },
                         child: Text(
                           "Se déconnecter",

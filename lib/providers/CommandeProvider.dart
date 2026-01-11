@@ -11,6 +11,9 @@ class Commandeprovider with ChangeNotifier {
   double get deliveryFee => 2.55; // Frais fixes 
   double get total => subTotal > 0 ? subTotal + deliveryFee : 0;
 
+  //Le nombre de point est identique au prix avant réduction.
+  int get points => subTotal.toInt();
+
   //Ajouter un item au panier.
   void addItem(ProductModel product, int quantity) {
     int index = _items.indexWhere((item) => item.product.name == product.name);
@@ -38,6 +41,13 @@ class Commandeprovider with ChangeNotifier {
       _items[index].quantity = newQuantity;
     }
     notifyListeners();
+  }
+
+  //Mert à jour le nombre de points gagné en fonction de la commande.
+  void pointsEarn(ProductModel product, int quantity) {
+    int index = _items.indexWhere((item) => item.product.name == product.name);
+    if(index != -1) {
+    }
   }
 
   // Vider le panier (après paiement)

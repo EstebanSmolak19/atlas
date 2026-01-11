@@ -1,4 +1,5 @@
 import 'package:atlas/providers/CommandeProvider.dart';
+import 'package:atlas/providers/UserProvider.dart';
 import 'package:atlas/widgets/appbar/ProductAppbar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -17,10 +18,11 @@ class _CommandePageState extends State<CommandePage> {
   Widget build(BuildContext context) {
     final cartProvider = context.watch<Commandeprovider>();
     final cartItems = cartProvider.items;
+    final user = context.watch<UserProvider>().user!;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF9F9F9),
-      appBar: const ProductAppbar(showBackground: false, showTitle: true),
+      appBar: const ProductAppbar(title: "Panier"),
       body: Column(
         children: [
           Expanded(
@@ -142,6 +144,14 @@ class _CommandePageState extends State<CommandePage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
+                    const Text("Points gagnés", style: TextStyle(color: Colors.grey, fontSize: 16)),
+                    Text("${cartProvider.points}", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
                     const Text("Frais de livraison", style: TextStyle(color: Colors.grey, fontSize: 16)),
                     Text("${cartProvider.deliveryFee.toStringAsFixed(2)} £", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                   ],
@@ -152,9 +162,38 @@ class _CommandePageState extends State<CommandePage> {
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  // Aligne le texte "Total" verticalement au centre par rapport à la colonne de prix
+                  crossAxisAlignment: CrossAxisAlignment.center, 
                   children: [
                     const Text("Total", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20)),
-                    Text("${cartProvider.total.toStringAsFixed(2)} £", style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 20)),
+                    
+                    user.premium
+                        ? Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.end, 
+                            children: [
+                              Text(
+                                "${cartProvider.total.toStringAsFixed(2)} £",
+                                style: const TextStyle(
+                                  decoration: TextDecoration.lineThrough, 
+                                  color: Colors.grey,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              Text(
+                                "${(cartProvider.total * 0.7).toStringAsFixed(2)} £", 
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w900, 
+                                  fontSize: 20, 
+                                  color: Color.fromARGB(255, 105, 180, 115) 
+                                ),
+                              ),
+                            ],
+                          )
+                        : Text(
+                            "${cartProvider.total.toStringAsFixed(2)} £", 
+                            style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 20),
+                          ),
                   ],
                 ),
                 const SizedBox(height: 25),
