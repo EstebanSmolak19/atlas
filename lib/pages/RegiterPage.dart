@@ -1,11 +1,9 @@
 import 'dart:ui' as ui;
 import 'package:atlas/enum/InputType.dart';
-import 'package:atlas/providers/UserProvider.dart';
 import 'package:atlas/services/AuthService.dart';
 import 'package:atlas/widgets/login/AuthSheet.dart';
 import 'package:atlas/widgets/login/inputField.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
