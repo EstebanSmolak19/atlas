@@ -78,7 +78,7 @@ class _DetailPageState extends State<DetailPage> {
                         ),
                       ),
                       Text(
-                        "${product.prize.toString()}€",
+                        "${product.price}€",
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.w900,

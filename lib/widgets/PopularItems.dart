@@ -25,7 +25,7 @@ class _PopularItemsState extends State<PopularItems> {
   @override
   Widget build(BuildContext context) {
     final productProvider = context.watch<ProductProvider>();
-    final items = productProvider.products;
+    final items = productProvider.popularItems;
 
     if (productProvider.isLoading) {
       return const SizedBox(
@@ -131,7 +131,7 @@ class _PopularItemsState extends State<PopularItems> {
                             ),
                           ),
                           child: Text(
-                            "${item.prize.toString()}€",
+                            "${item.price.toString()}€",
                             style: const TextStyle(
                                 fontWeight: FontWeight.bold),
                           ),

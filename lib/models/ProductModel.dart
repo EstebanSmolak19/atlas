@@ -4,18 +4,20 @@ class ProductModel {
   final double average;
   final String description;
   final String name;
-  final double prize;
+  final double price;
   final int calorie;
   final int time;
+  final String type;
   final int rating_count;
 
   ProductModel({
     required this.average,
     required this.description,
     required this.name,
-    required this.prize,
+    required this.price,
     required this.calorie,
     required this.time,
+    required this.type,
     required this.rating_count
   });
 
@@ -34,9 +36,10 @@ class ProductModel {
       average: (map['average'] as num?)?.toDouble() ?? 0.0,
       description: map['description'] as String,
       name: map['name'] as String,
-      prize: (map['prize'] as num?)?.toDouble() ?? 0.0,
+      price: (map['price'] as num?)?.toDouble() ?? 0.0,
       calorie: map['calorie'] as int,
       time: map['time'] as int,
+      type: map['type'] as String,
       rating_count: map['rating_count'] as int,
     );
   }

@@ -1,3 +1,4 @@
+import 'package:atlas/enum/ProductType.dart';
 import 'package:atlas/models/AppRoutes.dart';
 import 'package:atlas/providers/CategoryProvider.dart';
 import 'package:flutter/material.dart';
@@ -19,6 +20,16 @@ class _FoodCategoryNavBarState extends State<FoodCategoryNavBar> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<CategoryProvider>(context, listen: false).fetchCategories();
     });
+  }
+
+  ProductType _mapStringToEnum(String categoryName) {
+    try {
+      return ProductType.values.firstWhere(
+        (e) => e.name.toLowerCase() == categoryName.toLowerCase()
+      );
+    } catch (e) {
+      return ProductType.burger; 
+    }
   }
 
   @override
@@ -55,11 +66,14 @@ class _FoodCategoryNavBarState extends State<FoodCategoryNavBar> {
               setState(() {
                 selectedIndex = index;
               });
-              
-              //Récupère le nom de la catégorie.
-              String categoryName = categoryProvider.categories[index].name;
 
-              Navigator.pushNamed(context, AppRoutes.getRouteByName(categoryName)); 
+              ProductType type = _mapStringToEnum(category.name);
+
+              Navigator.pushNamed(
+                context, 
+                AppRoutes.categoryPage, 
+                arguments: type
+              ); 
             },
             child: CategoryItem(
               imagePath: category.icon,
