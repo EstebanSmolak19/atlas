@@ -4,6 +4,7 @@ import 'package:atlas/pages/DetailPage.dart';
 import 'package:atlas/pages/FirstPage.dart';
 import 'package:atlas/pages/LoginPage.dart';
 import 'package:atlas/pages/RegiterPage.dart';
+import 'package:atlas/pages/SupportPage.dart';
 import 'package:atlas/widgets/BottomNavbar.dart';
 import 'package:flutter/cupertino.dart';
 
@@ -16,6 +17,7 @@ class AppRoutes {
   static const String detailPage = '/details';
   static const String categoryPage = 'categoryPage';
   static const String commande = '/commande';
+  static const String support = '/support';
 
   static Map<String, String> get _dynamicCategoryMap => <String, String> { 
     'Burger': burgerPage,
@@ -33,6 +35,7 @@ class AppRoutes {
     register     : (context) => const RegisterPage(),
     categoryPage : (context) => const CategoryPage(),
     detailPage   : (context) => const DetailPage(),
-    commande     : (context) => const CommandePage()
+    commande     : (context) => const CommandePage(),
+    support      : (context) => const SupportPage()
   };
 }

@@ -246,8 +246,6 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                         child: Column(
                           children: [
-                            _buildSettingsTile(Icons.person_outline, "Informations Personnelles"),
-                            _buildDivider(),
                             _buildSettingsTile(Icons.location_on_outlined, "Mes Adresses"),
                             _buildDivider(),
                             _buildSettingsTile(Icons.payment_outlined, "Moyens de paiement"),
@@ -331,7 +329,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Widget _buildSettingsTile(IconData icon, String title) {
     return ListTile(
-      onTap: () {},
+      onTap: () => Navigator.pushNamed(context, AppRoutes.support),
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
       leading: Container(
         padding: const EdgeInsets.all(8),

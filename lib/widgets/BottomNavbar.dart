@@ -1,3 +1,4 @@
+import 'package:atlas/pages/FavoritePage.dart';
 import 'package:atlas/pages/HomePage.dart';
 import 'package:atlas/pages/ProfilePage.dart';
 import 'package:flutter/material.dart';
@@ -14,7 +15,7 @@ class _BottomNavbarState extends State<BottomNavbar> {
 
   final List<Widget> _pages = [
     const HomePage(),
-    const HomePage(),
+    const FavoritePage(),
     const ProfilePage(),
   ];
 
