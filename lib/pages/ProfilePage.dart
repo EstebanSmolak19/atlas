@@ -1,5 +1,6 @@
 import 'package:atlas/models/AppRoutes.dart';
 import 'package:atlas/providers/CommandeProvider.dart';
+import 'package:atlas/providers/NavigationProvider.dart'; // 1. Import indispensable
 import 'package:atlas/providers/UserProvider.dart';
 import 'package:atlas/widgets/appbar/customAppbar.dart';
 import 'package:flutter/material.dart';
@@ -28,12 +29,19 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     final userProvider = context.watch<UserProvider>();
     final commandeProvider = context.watch<Commandeprovider>();
+    final user = userProvider.user;
+
+    // Sécurité si l'utilisateur n'est pas encore chargé
+    if (user == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator(color: Colors.black)));
+    }
 
     return Scaffold(
       backgroundColor: scaffoldColor,
       appBar: const CustomAppBar(),
       body: Stack(
         children: [
+          // Éléments de fond (Images décoratives)
           Positioned(
             top: 0,
             right: -80,
@@ -41,10 +49,7 @@ class _ProfilePageState extends State<ProfilePage> {
               angle: 0.2,
               child: Opacity(
                 opacity: 0.1,
-                child: Image.asset(
-                  'assets/burger1.png',
-                  width: 300,
-                ),
+                child: Image.asset('assets/burger1.png', width: 300),
               ),
             ),
           ),
@@ -55,16 +60,15 @@ class _ProfilePageState extends State<ProfilePage> {
               angle: -0.5,
               child: Opacity(
                 opacity: 0.08,
-                child: Image.asset(
-                  'assets/pizza1.png',
-                  width: 250,
-                ),
+                child: Image.asset('assets/pizza1.png', width: 250),
               ),
             ),
           ),
+          
           SingleChildScrollView(
             child: Column(
               children: [
+                // EN-TÊTE PROFIL
                 Stack(
                   clipBehavior: Clip.none,
                   alignment: Alignment.center,
@@ -128,30 +132,28 @@ class _ProfilePageState extends State<ProfilePage> {
                             ],
                           ),
                           const SizedBox(height: 15),
-
-                          Column(
-                              children: [
-                                Text(
-                                  userProvider.user!.pseudo,
-                                  style: const TextStyle(
-                                    fontSize: 26,
-                                    fontWeight: FontWeight.w900,
-                                    color: Colors.black,
-                                    letterSpacing: -0.5,
-                                  ),
-                                ),
-                              ],
+                          Text(
+                            user.pseudo,
+                            style: const TextStyle(
+                              fontSize: 26,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.black,
+                              letterSpacing: -0.5,
                             ),
+                          ),
                         ],
                       ),
                     ),
                   ],
                 ),
+                
                 const SizedBox(height: 60),
+                
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Column(
                     children: [
+                      // CARTE FIDÉLITÉ
                       Container(
                         width: double.infinity,
                         padding: const EdgeInsets.all(25),
@@ -175,34 +177,23 @@ class _ProfilePageState extends State<ProfilePage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      "BURGER CLUB",
-                                      style: TextStyle(
-                                        color: yellowColor,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w900,
-                                        letterSpacing: 2,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 5),
-
-                                    Text(
-                                      "${userProvider.user!.points} pts",
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 34,
-                                        fontWeight: FontWeight.w900,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
+                            Text(
+                              "BURGER CLUB",
+                              style: TextStyle(
+                                color: yellowColor,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 2,
+                              ),
+                            ),
+                            const SizedBox(height: 5),
+                            Text(
+                              "${user.points} pts",
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 34,
+                                fontWeight: FontWeight.w900,
+                              ),
                             ),
                             const SizedBox(height: 20),
                             const Text(
@@ -222,16 +213,33 @@ class _ProfilePageState extends State<ProfilePage> {
                           ],
                         ),
                       ),
+                      
                       const SizedBox(height: 30),
+                      
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          _buildQuickActionCard(Icons.fastfood, "Mes\nCommandes", isMain: true),
-                          _buildQuickActionCard(Icons.favorite_rounded, "Plats\nFavoris"),
-                          _buildQuickActionCard(Icons.confirmation_number, "Mes\nCoupons"),
+                          _buildQuickActionCard(
+                            Icons.fastfood, 
+                            "Mes\nCommandes", 
+                            "", 
+                            isMain: true
+                          ),
+                          _buildQuickActionCard(
+                            Icons.favorite_rounded, 
+                            "Plats\nFavoris",  
+                            AppRoutes.favorite 
+                          ),
+                          _buildQuickActionCard(
+                            Icons.confirmation_number, 
+                            "Mes\nCoupons", 
+                            ''
+                          ),
                         ],
                       ),
+                      
                       const SizedBox(height: 30),
+                      
                       Container(
                         decoration: BoxDecoration(
                           color: Colors.white,
@@ -246,20 +254,22 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                         child: Column(
                           children: [
-                            _buildSettingsTile(Icons.location_on_outlined, "Mes Adresses"),
+                            _buildSettingsTile(Icons.location_on_outlined, "Mes Adresses", '/addresses'),
                             _buildDivider(),
-                            _buildSettingsTile(Icons.payment_outlined, "Moyens de paiement"),
+                            _buildSettingsTile(Icons.payment_outlined, "Moyens de paiement", '/payment'),
                             _buildDivider(),
-                            _buildSettingsTile(Icons.support_agent, "Aide & Support"),
+                            _buildSettingsTile(Icons.support_agent, "Aide & Support", AppRoutes.support),
                           ],
                         ),
                       ),
+                      
                       const SizedBox(height: 40),
+                      
                       TextButton(
                         onPressed: () async {
                           await userProvider.logout();
                           commandeProvider.clearCart();
-                          if (context.mounted) Navigator.pushReplacementNamed(context, AppRoutes.first);
+                          if (context.mounted) Navigator.pushReplacementNamed(context, AppRoutes.login);
                         },
                         child: Text(
                           "Se déconnecter",
@@ -282,7 +292,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildQuickActionCard(IconData icon, String label, {bool isMain = false}) {
+  Widget _buildQuickActionCard(IconData icon, String label, String routeString, {bool isMain = false}) {
     return Container(
       width: 105,
       height: 110,
@@ -301,7 +311,14 @@ class _ProfilePageState extends State<ProfilePage> {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(24),
-          onTap: () {},
+          onTap: () {
+            if (routeString == AppRoutes.favorite) {
+              context.read<NavigationProvider>().setIndex(1); 
+            } 
+            else if (routeString.isNotEmpty) {
+              Navigator.pushNamed(context, routeString);
+            }
+          },
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -327,9 +344,9 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildSettingsTile(IconData icon, String title) {
+  Widget _buildSettingsTile(IconData icon, String title, String route) {
     return ListTile(
-      onTap: () => Navigator.pushNamed(context, AppRoutes.support),
+      onTap: () => Navigator.pushNamed(context, route),
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
       leading: Container(
         padding: const EdgeInsets.all(8),
