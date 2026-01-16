@@ -44,9 +44,12 @@ class _DetailPageState extends State<DetailPage> {
                   radius: 0.53,
                 ),
               ),
-              child: Image.asset(
-                'assets/pizza1.png', 
-                fit: BoxFit.contain,
+              child: Hero(
+                tag: product.name,
+                child: Image.asset(
+                  'assets/${product.img_url}', 
+                  fit: BoxFit.contain,
+                ),
               ),
             ),
           ),
@@ -72,6 +75,10 @@ class _DetailPageState extends State<DetailPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  _buildNationalityBadge((product as dynamic).nationality),
+                  
+                  const SizedBox(height: 10),
+
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -128,7 +135,6 @@ class _DetailPageState extends State<DetailPage> {
 
                   Row(
                     children: [
-                      // Sélecteur de quantité (- 1 +)
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                         decoration: BoxDecoration(
@@ -185,6 +191,32 @@ class _DetailPageState extends State<DetailPage> {
                   ),
                 ],
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNationalityBadge(String nationality) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.black,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.public, color: yellowColor, size: 14),
+          const SizedBox(width: 6),
+          Text(
+            nationality.toUpperCase(),
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 11,
+              letterSpacing: 1,
             ),
           ),
         ],

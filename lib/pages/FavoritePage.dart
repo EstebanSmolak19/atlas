@@ -101,7 +101,7 @@ class _FavoritePageState extends State<FavoritePage> {
                         child: Hero(
                           tag: "fav_${product.name}",
                           child: Image.asset(
-                            'assets/pizza1.png',
+                            'assets/${product.img_url}',
                             fit: BoxFit.contain,
                           ),
                         ),
@@ -261,7 +261,7 @@ class _FavoritePageState extends State<FavoritePage> {
           const SizedBox(height: 35),
           ElevatedButton(
             onPressed: () {
-              Navigator.pushNamedAndRemoveUntil(context, AppRoutes.home, (route) => false);
+              Navigator.pushNamed(context, AppRoutes.categoryPage);
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.black,

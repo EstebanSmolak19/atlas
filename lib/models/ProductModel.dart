@@ -10,6 +10,8 @@ class ProductModel {
   final int time;
   final String type;
   final int rating_count;
+  final String nationality;
+  final String img_url;
 
   ProductModel({
     required this.id,
@@ -20,7 +22,9 @@ class ProductModel {
     required this.calorie,
     required this.time,
     required this.type,
-    required this.rating_count
+    required this.rating_count,
+    required this.nationality,
+    required this.img_url
   });
 
 
@@ -34,6 +38,8 @@ class ProductModel {
       'time': time,    
       'type': type,     
       'rating_count': rating_count,
+      'nationality' : nationality,
+      'img_url': img_url
     };
   }
 
@@ -48,6 +54,8 @@ class ProductModel {
       time: map['time'] as int,
       type: map['type'] as String,
       rating_count: map['rating_count'] as int,
+      nationality: map['nationality'] as String,
+      img_url: map['img_url'] as String
     );
   }
 

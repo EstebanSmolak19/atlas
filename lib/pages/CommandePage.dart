@@ -56,7 +56,7 @@ class _CommandePageState extends State<CommandePage> {
                         ),
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),
-                          child: Image.asset('assets/burger1.png', fit: BoxFit.contain),
+                          child: Image.asset('assets/${item.product.img_url}', fit: BoxFit.contain),
                         ),
                       ),
                       const SizedBox(width: 15),

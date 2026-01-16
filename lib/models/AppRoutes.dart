@@ -14,7 +14,6 @@ class AppRoutes {
   static const String home = '/home';
   static const String first = '/first';
   static const String register = '/register';
-  static const String burgerPage = '/categorie-page';
   static const String detailPage = '/details';
   static const String categoryPage = 'categoryPage';
   static const String commande = '/commande';

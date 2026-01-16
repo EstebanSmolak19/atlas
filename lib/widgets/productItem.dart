@@ -23,7 +23,9 @@ class ProductItem extends StatelessWidget {
           ),
           child: Padding(
             padding: const EdgeInsets.all(8.0),
-            child: Image.asset('assets/burger1.png', fit: BoxFit.contain),
+            child: Image.asset(
+              'assets/${product.img_url}',
+            ),
           ),
         ),
         const SizedBox(width: 16),
@@ -70,7 +72,7 @@ class ProductItem extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    "${product.price} £",
+                    "${product.price}€",
                     style: const TextStyle(
                       fontWeight: FontWeight.w900,
                       fontSize: 18,
