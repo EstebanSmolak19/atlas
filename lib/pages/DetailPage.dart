@@ -1,15 +1,24 @@
 import 'package:atlas/models/ProductModel.dart';
+import 'package:atlas/pages/MenuSelectionPage.dart';
+import 'package:atlas/pages/ReviewPage.dart';
 import 'package:atlas/providers/CommandeProvider.dart';
+import 'package:atlas/services/UserService.dart'; 
 import 'package:atlas/widgets/QtyBtn.dart';
 import 'package:atlas/widgets/appbar/detailAppBar.dart';
 import 'package:atlas/widgets/infoBadge.dart';
 import 'package:atlas/widgets/login/Toast.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 class DetailPage extends StatefulWidget {
-  const DetailPage({super.key});
+  final bool isMenu;
+
+  const DetailPage({
+    super.key,
+    this.isMenu = false, 
+  });
 
   @override
   State<DetailPage> createState() => _DetailPageState();
@@ -17,210 +26,441 @@ class DetailPage extends StatefulWidget {
 
 class _DetailPageState extends State<DetailPage> {
   int quantity = 1;
+  late bool isMenu;
   final Color yellowColor = const Color.fromARGB(255, 242, 202, 80);
+  final UserService _userService = UserService();
+
+  @override
+  void initState() {
+    super.initState();
+    isMenu = widget.isMenu;
+  }
 
   @override
   Widget build(BuildContext context) {
-    final product = ModalRoute.of(context)!.settings.arguments as ProductModel;
+    final productArg = ModalRoute.of(context)!.settings.arguments as ProductModel;
     final commandeProvider = context.watch<Commandeprovider>();
 
-    return Scaffold(
-      backgroundColor: yellowColor,
-      appBar: const DetailAppBar(),
-      body: Column(
-        children: [
-          Expanded(
-            flex: 4,
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                gradient: RadialGradient(
-                  colors: [
-                    Colors.white.withOpacity(0.6), 
-                    yellowColor,
-                  ],
-                  center: Alignment.center,
-                  radius: 0.53,
-                ),
-              ),
-              child: Hero(
-                tag: product.name,
-                child: Image.asset(
-                  'assets/${product.img_url}', 
-                  fit: BoxFit.contain,
-                ),
-              ),
-            ),
-          ),
+    return StreamBuilder<DocumentSnapshot>(
+      stream: FirebaseFirestore.instance.collection('products').doc(productArg.id).snapshots(),
+      builder: (context, snapshot) {
+        
+        ProductModel product = productArg;
+        if (snapshot.hasData && snapshot.data!.exists) {
+          Map<String, dynamic> data = snapshot.data!.data() as Map<String, dynamic>;
+          data['id'] = snapshot.data!.id;
+          product = ProductModel.fromMap(data);
+        }
 
-          Expanded(
-            flex: 5,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 30),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(40),
-                  topRight: Radius.circular(40),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 20,
-                    offset: Offset(0, -5),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildNationalityBadge((product as dynamic).nationality),
-                  
-                  const SizedBox(height: 10),
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        product.name,
-                        style: GoogleFonts.lilitaOne(
-                          fontSize: 28,
-                          color: Colors.black,
-                        ),
-                      ),
-                      Text(
-                        "${product.price}€",
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w900,
-                          color: yellowColor,
-                        ),
-                      ),
-                    ],
-                  ),
-                  
-                  const SizedBox(height: 20),
-
-                  Row(
-                    children: [
-                      buildInfoBadge(Icons.star, product.average.toString(), Colors.orange),
-                      const SizedBox(width: 20),
-                      buildInfoBadge(Icons.local_fire_department, "${product.calorie.toString()} kcal", Colors.redAccent),
-                      const SizedBox(width: 20),
-                      buildInfoBadge(Icons.access_time_filled, "${product.time.toString()} min", Colors.blueGrey),
-                    ],
-                  ),
-
-                  const SizedBox(height: 25),
-
-                  const Text(
-                    "Description",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+        return Scaffold(
+          backgroundColor: yellowColor,
+          appBar: const DetailAppBar(),
+          body: Column(
+            children: [
+              Expanded(
+                flex: 4,
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    gradient: RadialGradient(
+                      colors: [Colors.white.withOpacity(0.6), yellowColor],
+                      center: Alignment.center,
+                      radius: 0.53,
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  Text(
-                    product.description,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[600],
-                      height: 1.5,
+                  child: Hero(
+                    tag: productArg.name, 
+                    child: Image.asset(
+                      'assets/${product.img_url}', 
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) => Image.asset('assets/pizza1.png'),
                     ),
                   ),
+                ),
+              ),
 
-                  const Spacer(),
-
-                  Row(
+              Expanded(
+                flex: 5,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 30),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(40),
+                      topRight: Radius.circular(40),
+                    ),
+                    boxShadow: [
+                      BoxShadow(color: Colors.black12, blurRadius: 20, offset: Offset(0, -5)),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF5F5F5),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Row(
-                          children: [
-                            buildQtyBtn(Icons.remove, () {
-                              if (quantity > 1) setState(() => quantity--);
-                            }),
-                            SizedBox(
-                              width: 40,
-                              child: Text(
-                                "$quantity",
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                              ),
-                            ),
-                            buildQtyBtn(Icons.add, () {
-                              setState(() => quantity++);
-                            }),
-                          ],
-                        ),
-                      ),
-                      
-                      const SizedBox(width: 20),
-
                       Expanded(
-                        child: ElevatedButton(
-                          onPressed: () {
-                            commandeProvider.addItem(product, quantity);
-                            Toast.show(context, "${quantity} ${product.name} ajouté au panier !");
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.black,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 18),
-                            shape: RoundedRectangleBorder(
+                        child: SingleChildScrollView(
+                          physics: const BouncingScrollPhysics(),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildNationalityBadge(product.nationality),
+                              
+                              const SizedBox(height: 10),
+
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      product.name,
+                                      style: GoogleFonts.lilitaOne(
+                                        fontSize: 28,
+                                        color: Colors.black,
+                                        height: 1.1,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Text(
+                                    "${(isMenu ? product.price + 3.99 : product.price).toStringAsFixed(2)}€",
+                                    style: TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.w900,
+                                      color: yellowColor,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              
+                              const SizedBox(height: 20),
+
+                              Row(
+                                children: [
+                                  buildInfoBadge(Icons.star, product.average.toStringAsFixed(1), Colors.orange),
+                                  const SizedBox(width: 20),
+                                  buildInfoBadge(Icons.local_fire_department, "${product.calorie.toString()} kcal", Colors.redAccent),
+                                  const SizedBox(width: 20),
+                                  buildInfoBadge(Icons.access_time_filled, "${product.time.toString()} min", Colors.blueGrey),
+                                ],
+                              ),
+
+                              const SizedBox(height: 15),
+                              
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  GestureDetector(
+                                    onTap: () => _showReviewModal(context, product),
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.rate_review_outlined, size: 18, color: Colors.grey[800]),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          "Donner mon avis (${product.rating_count})",
+                                          style: TextStyle(
+                                            color: Colors.grey[800],
+                                            fontWeight: FontWeight.bold,
+                                            decoration: TextDecoration.underline,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => const ReviewsPage(),
+                                          settings: RouteSettings(arguments: product),
+                                        ),
+                                      );
+                                    },
+                                    child: Text(
+                                      "Voir les avis",
+                                      style: TextStyle(
+                                        color: Colors.black,
+                                        fontWeight: FontWeight.bold,
+                                        decoration: TextDecoration.underline,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+
+                              const SizedBox(height: 25),
+
+                              // TOGGLE MENU / SIMPLE
+                              Container(
+                                width: double.infinity,
+                                height: 50,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF5F5F5),
+                                  borderRadius: BorderRadius.circular(25),
+                                ),
+                                child: Stack(
+                                  children: [
+                                    AnimatedAlign(
+                                      alignment: isMenu ? Alignment.centerRight : Alignment.centerLeft,
+                                      duration: const Duration(milliseconds: 300),
+                                      curve: Curves.easeInOut,
+                                      child: FractionallySizedBox(
+                                        widthFactor: 0.5,
+                                        child: Container(
+                                          margin: const EdgeInsets.all(4),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            borderRadius: BorderRadius.circular(25),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black.withOpacity(0.1),
+                                                blurRadius: 4,
+                                                offset: const Offset(0, 2),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: GestureDetector(
+                                            behavior: HitTestBehavior.translucent,
+                                            onTap: () => setState(() => isMenu = false),
+                                            child: Center(
+                                              child: Text(
+                                                "Choix simple",
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  color: !isMenu ? Colors.black : Colors.grey,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        Expanded(
+                                          child: GestureDetector(
+                                            behavior: HitTestBehavior.translucent,
+                                            onTap: () => setState(() => isMenu = true),
+                                            child: Center(
+                                              child: Text(
+                                                "Menu (+3.99€)",
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  color: isMenu ? Colors.black : Colors.grey,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                              const SizedBox(height: 25),
+
+                              const Text("Description", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                              const SizedBox(height: 10),
+                              Text(
+                                product.description,
+                                style: TextStyle(fontSize: 14, color: Colors.grey[600], height: 1.5),
+                              ),
+
+                              const SizedBox(height: 20),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 10),
+                      
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF5F5F5),
                               borderRadius: BorderRadius.circular(20),
                             ),
-                            elevation: 5,
-                          ),
-                          child: const Text(
-                            "Ajouter au panier",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                            child: Row(
+                              children: [
+                                buildQtyBtn(Icons.remove, () {
+                                  if (quantity > 1) setState(() => quantity--);
+                                }),
+                                SizedBox(
+                                  width: 40,
+                                  child: Text(
+                                    "$quantity",
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                                  ),
+                                ),
+                                buildQtyBtn(Icons.add, () => setState(() => quantity++)),
+                              ],
                             ),
                           ),
-                        ),
+                          const SizedBox(width: 20),
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: () {
+                                if (isMenu) {
+                                  // LOGIQUE MENU : On va vers la page de composition
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => MenuSelectionPage(mainProduct: product),
+                                    ),
+                                  );
+                                } else {
+                                  // LOGIQUE SIMPLE : Ajout direct au panier
+                                  commandeProvider.addItem(product, quantity);
+                                  Toast.show(context, "${quantity} ${product.name} ajouté au panier !");
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.black,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 18),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                elevation: 5,
+                              ),
+                              child: Text(
+                                isMenu ? "Créer son menu" : "Ajouter au panier",
+                                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ],
+                ),
               ),
-            ),
+            ],
           ),
-        ],
-      ),
+        );
+      }
     );
   }
 
   Widget _buildNationalityBadge(String nationality) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.black,
-        borderRadius: BorderRadius.circular(20),
-      ),
+      decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(20)),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(Icons.public, color: yellowColor, size: 14),
           const SizedBox(width: 6),
-          Text(
-            nationality.toUpperCase(),
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 11,
-              letterSpacing: 1,
-            ),
-          ),
+          Text(nationality.toUpperCase(), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11, letterSpacing: 1)),
         ],
       ),
+    );
+  }
+
+  void _showReviewModal(BuildContext context, ProductModel product) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true, 
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        int selectedStars = 5; 
+        final TextEditingController commentController = TextEditingController();
+        bool isSending = false;
+
+        return StatefulBuilder( 
+          builder: (context, setModalState) {
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.6,
+              padding: EdgeInsets.only(
+                top: 25, 
+                left: 20, 
+                right: 20,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 20
+              ),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(child: Container(width: 50, height: 5, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10)))),
+                  const SizedBox(height: 20),
+                  Text("Noter ${product.name}", style: GoogleFonts.lilitaOne(fontSize: 24)),
+                  const SizedBox(height: 15),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(5, (index) {
+                      return IconButton(
+                        onPressed: () {
+                          setModalState(() {
+                            selectedStars = index + 1;
+                          });
+                        },
+                        icon: Icon(
+                          index < selectedStars ? Icons.star_rounded : Icons.star_outline_rounded,
+                          color: Colors.orange,
+                          size: 40,
+                        ),
+                      );
+                    }),
+                  ),
+                  const SizedBox(height: 20),
+                  TextField(
+                    controller: commentController,
+                    maxLines: 4,
+                    decoration: InputDecoration(
+                      hintText: "Racontez-nous votre expérience culinaire...",
+                      filled: true,
+                      fillColor: const Color(0xFFF9F9F9),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                  const Spacer(),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: isSending ? null : () async {
+                        setModalState(() => isSending = true);
+                        try {
+                          await _userService.submitReview(product.id, selectedStars, commentController.text);
+                          if (context.mounted) {
+                            Navigator.pop(context);
+                            Toast.show(context, "Merci pour votre avis ! ⭐");
+                          }
+                        } catch (e) {
+                          if (context.mounted) {
+                            Toast.show(context, e.toString().replaceAll("Exception: ", ""));
+                            setModalState(() => isSending = false);
+                          }
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.black,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                      ),
+                      child: isSending 
+                        ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                        : const Text("Envoyer mon avis", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

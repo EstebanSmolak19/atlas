@@ -5,6 +5,7 @@ import 'package:atlas/pages/FavoritePage.dart';
 import 'package:atlas/pages/FirstPage.dart';
 import 'package:atlas/pages/LoginPage.dart';
 import 'package:atlas/pages/RegiterPage.dart';
+import 'package:atlas/pages/ReviewPage.dart';
 import 'package:atlas/pages/SupportPage.dart';
 import 'package:atlas/widgets/BottomNavbar.dart';
 import 'package:flutter/cupertino.dart';
@@ -19,6 +20,7 @@ class AppRoutes {
   static const String commande = '/commande';
   static const String support = '/support';
   static const String favorite = '/favorite';
+  static const String review = '/review';
 
 
   static final Map<String, WidgetBuilder> routes = {
@@ -30,6 +32,7 @@ class AppRoutes {
     detailPage   : (context) => const DetailPage(),
     commande     : (context) => const CommandePage(),
     support      : (context) => const SupportPage(),
-    favorite     : (context) => const FavoritePage()
+    favorite     : (context) => const FavoritePage(),
+    review       : (context) => const ReviewsPage(),
   };
 }
