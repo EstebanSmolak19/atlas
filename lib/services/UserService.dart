@@ -70,4 +70,32 @@ class UserService {
       });
     });
   }
+
+  Future<void> addAddress(String address) async {
+    final currentUser = _auth.currentUser;
+    if (currentUser == null) return;
+
+    try {
+      await _firestore.collection('users').doc(currentUser.uid).update({
+        'addresses': FieldValue.arrayUnion([address])
+      });
+    } catch (e) {
+      print("Erreur addAddress : $e");
+      rethrow;
+    }
+  }
+
+  Future<void> removeAddress(String address) async {
+    final currentUser = _auth.currentUser;
+    if (currentUser == null) return;
+
+    try {
+      await _firestore.collection('users').doc(currentUser.uid).update({
+        'addresses': FieldValue.arrayRemove([address])
+      });
+    } catch (e) {
+      print("Erreur removeAddress : $e");
+      rethrow;
+    }
+  }
 }

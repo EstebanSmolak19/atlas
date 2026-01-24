@@ -1,6 +1,6 @@
 import 'package:atlas/models/AppRoutes.dart';
 import 'package:atlas/providers/CommandeProvider.dart';
-import 'package:atlas/providers/NavigationProvider.dart'; // 1. Import indispensable
+import 'package:atlas/providers/NavigationProvider.dart'; 
 import 'package:atlas/providers/UserProvider.dart';
 import 'package:atlas/widgets/appbar/customAppbar.dart';
 import 'package:flutter/material.dart';
@@ -31,7 +31,6 @@ class _ProfilePageState extends State<ProfilePage> {
     final commandeProvider = context.watch<Commandeprovider>();
     final user = userProvider.user;
 
-    // Sécurité si l'utilisateur n'est pas encore chargé
     if (user == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator(color: Colors.black)));
     }
@@ -41,7 +40,6 @@ class _ProfilePageState extends State<ProfilePage> {
       appBar: const CustomAppBar(),
       body: Stack(
         children: [
-          // Éléments de fond (Images décoratives)
           Positioned(
             top: 0,
             right: -80,
@@ -50,17 +48,6 @@ class _ProfilePageState extends State<ProfilePage> {
               child: Opacity(
                 opacity: 0.1,
                 child: Image.asset('assets/burger1.png', width: 300),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: 100,
-            left: -80,
-            child: Transform.rotate(
-              angle: -0.5,
-              child: Opacity(
-                opacity: 0.08,
-                child: Image.asset('assets/pizza1.png', width: 250),
               ),
             ),
           ),
@@ -167,12 +154,6 @@ class _ProfilePageState extends State<ProfilePage> {
                               offset: const Offset(0, 10),
                             ),
                           ],
-                          image: const DecorationImage(
-                            image: AssetImage('assets/burger1.png'),
-                            opacity: 0.2,
-                            alignment: Alignment.centerRight,
-                            fit: BoxFit.contain,
-                          ),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -254,7 +235,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                         child: Column(
                           children: [
-                            _buildSettingsTile(Icons.location_on_outlined, "Mes Adresses", '/addresses'),
+                            _buildSettingsTile(Icons.location_on_outlined, "Mes Adresses", AppRoutes.address),
                             _buildDivider(),
                             _buildSettingsTile(Icons.payment_outlined, "Moyens de paiement", '/payment'),
                             _buildDivider(),

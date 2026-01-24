@@ -5,12 +5,14 @@ class UserModel {
   final String pseudo;
   final int points;
   final bool premium;
+  final List<String> addresses;
 
    UserModel({
     required this.email,
     required this.pseudo,
     required this.points,
     required this.premium,
+    required this.addresses
   });
 
   Map<String, dynamic> toMap() {
@@ -19,6 +21,7 @@ class UserModel {
       'pseudo': pseudo,
       'points': points,
       'premium': premium,
+      'adresses': addresses
     };
   }
 
@@ -28,6 +31,7 @@ class UserModel {
       pseudo: map['pseudo'] as String,
       points: map['points'] as int,
       premium: map['premium'] as bool,
+      addresses: List<String>.from(map['addresses'] ?? []),
     );
   }
 

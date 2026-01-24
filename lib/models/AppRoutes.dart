@@ -1,9 +1,11 @@
+import 'package:atlas/pages/AddressPage.dart';
 import 'package:atlas/pages/CategoriePage.dart';
 import 'package:atlas/pages/CommandePage.dart';
 import 'package:atlas/pages/DetailPage.dart';
 import 'package:atlas/pages/FavoritePage.dart';
 import 'package:atlas/pages/FirstPage.dart';
 import 'package:atlas/pages/LoginPage.dart';
+import 'package:atlas/pages/PaymentPage.dart';
 import 'package:atlas/pages/RegiterPage.dart';
 import 'package:atlas/pages/ReviewPage.dart';
 import 'package:atlas/pages/SupportPage.dart';
@@ -21,6 +23,8 @@ class AppRoutes {
   static const String support = '/support';
   static const String favorite = '/favorite';
   static const String review = '/review';
+  static const String payment = '/payment';
+  static const String address = '/address';
 
 
   static final Map<String, WidgetBuilder> routes = {
@@ -34,5 +38,11 @@ class AppRoutes {
     support      : (context) => const SupportPage(),
     favorite     : (context) => const FavoritePage(),
     review       : (context) => const ReviewsPage(),
+    payment      : (context) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      final double amount = (args is double) ? args : 0.0;
+      return PaymentPage(totalAmount: amount);
+    },
+    address      : (context) => const AddressPage()
   };
-}
+} 

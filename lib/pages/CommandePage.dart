@@ -1,3 +1,4 @@
+import 'package:atlas/models/AppRoutes.dart';
 import 'package:atlas/providers/CommandeProvider.dart';
 import 'package:atlas/providers/UserProvider.dart';
 import 'package:atlas/widgets/appbar/ProductAppbar.dart';
@@ -190,7 +191,7 @@ class _CommandePageState extends State<CommandePage> {
                             ],
                           )
                         : Text(
-                            "${cartProvider.total.toStringAsFixed(2)} £", 
+                            "${cartProvider.total.toStringAsFixed(2)} €", 
                             style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 20),
                           ),
                   ],
@@ -200,7 +201,14 @@ class _CommandePageState extends State<CommandePage> {
                   width: double.infinity,
                   height: 55,
                   child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: cartItems.isEmpty ? null : () {
+
+                      Navigator.pushNamed(
+                        context, 
+                        AppRoutes.payment,
+                        arguments: cartProvider.total
+                      );
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.black,
                       foregroundColor: yellowColor,
