@@ -1,14 +1,14 @@
-import 'package:atlas/pages/AddressPage.dart';
-import 'package:atlas/pages/CategoriePage.dart';
 import 'package:atlas/pages/CommandePage.dart';
-import 'package:atlas/pages/DetailPage.dart';
-import 'package:atlas/pages/FavoritePage.dart';
+import 'package:atlas/pages/commande/PaymentPage.dart';
+import 'package:atlas/pages/product/FavoritePage.dart';
+import 'package:atlas/pages/profile/AddressPage.dart';
+import 'package:atlas/pages/product/CategoriePage.dart';
+import 'package:atlas/pages/product/DetailPage.dart';
 import 'package:atlas/pages/FirstPage.dart';
 import 'package:atlas/pages/LoginPage.dart';
-import 'package:atlas/pages/PaymentPage.dart';
 import 'package:atlas/pages/RegiterPage.dart';
-import 'package:atlas/pages/ReviewPage.dart';
-import 'package:atlas/pages/SupportPage.dart';
+import 'package:atlas/pages/product/ReviewPage.dart';
+import 'package:atlas/pages/profile/SupportPage.dart';
 import 'package:atlas/widgets/BottomNavbar.dart';
 import 'package:flutter/cupertino.dart';
 

@@ -1,6 +1,6 @@
-import 'package:atlas/pages/FavoritePage.dart';
+import 'package:atlas/pages/product/FavoritePage.dart';
 import 'package:atlas/pages/HomePage.dart';
-import 'package:atlas/pages/ProfilePage.dart';
+import 'package:atlas/pages/profile/ProfilePage.dart';
 import 'package:atlas/providers/NavigationProvider.dart'; 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';

@@ -1,5 +1,5 @@
 import 'package:atlas/enum/ProductType.dart';
-import 'package:atlas/pages/DetailPage.dart';
+import 'package:atlas/pages/product/DetailPage.dart';
 import 'package:atlas/providers/CategoryProvider.dart';
 import 'package:atlas/providers/ProductProvider.dart';
 import 'package:atlas/widgets/appbar/ProductAppbar.dart';

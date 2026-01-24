@@ -1,6 +1,6 @@
 import 'package:atlas/models/ProductModel.dart';
 import 'package:atlas/pages/MenuSelectionPage.dart';
-import 'package:atlas/pages/ReviewPage.dart';
+import 'package:atlas/pages/product/ReviewPage.dart';
 import 'package:atlas/providers/CommandeProvider.dart';
 import 'package:atlas/services/UserService.dart'; 
 import 'package:atlas/widgets/QtyBtn.dart';
