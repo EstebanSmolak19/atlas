@@ -1,4 +1,4 @@
-import 'package:atlas/pages/CommandePage.dart';
+import 'package:atlas/pages/commande/CommandePage.dart';
 import 'package:atlas/pages/commande/PaymentPage.dart';
 import 'package:atlas/pages/product/FavoritePage.dart';
 import 'package:atlas/pages/profile/AddressPage.dart';
