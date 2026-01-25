@@ -8,6 +8,7 @@ import 'package:atlas/pages/FirstPage.dart';
 import 'package:atlas/pages/LoginPage.dart';
 import 'package:atlas/pages/RegiterPage.dart';
 import 'package:atlas/pages/product/ReviewPage.dart';
+import 'package:atlas/pages/profile/HistoryPage.dart';
 import 'package:atlas/pages/profile/SupportPage.dart';
 import 'package:atlas/widgets/BottomNavbar.dart';
 import 'package:flutter/cupertino.dart';
@@ -25,6 +26,7 @@ class AppRoutes {
   static const String review = '/review';
   static const String payment = '/payment';
   static const String address = '/address';
+  static const String history = '/history';
 
 
   static final Map<String, WidgetBuilder> routes = {
@@ -38,11 +40,13 @@ class AppRoutes {
     support      : (context) => const SupportPage(),
     favorite     : (context) => const FavoritePage(),
     review       : (context) => const ReviewsPage(),
+    address      : (context) => const AddressPage(),
+    history      : (context) => const HistoryPage(),
+
     payment      : (context) {
       final args = ModalRoute.of(context)?.settings.arguments;
       final double amount = (args is double) ? args : 0.0;
       return PaymentPage(totalAmount: amount);
     },
-    address      : (context) => const AddressPage()
   };
 } 

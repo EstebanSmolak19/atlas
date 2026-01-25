@@ -1,5 +1,6 @@
 import 'package:atlas/models/AppRoutes.dart';
 import 'package:atlas/providers/CommandeProvider.dart';
+import 'package:atlas/providers/HistoryProvider.dart';
 import 'package:atlas/providers/UserProvider.dart';
 import 'package:atlas/widgets/login/Toast.dart';
 import 'package:flutter/material.dart';
@@ -22,8 +23,6 @@ class _PaymentPageState extends State<PaymentPage> {
   
   bool _isProcessing = false;
   int _selectedPaymentMethod = 0; 
-  int _lastCardLength = 0;
-  int _lastExpiryLength = 0;
 
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _cardNumberController = TextEditingController();
@@ -304,15 +303,10 @@ class _PaymentPageState extends State<PaymentPage> {
                         icon: Icons.credit_card,
                         isNumber: true,
                         maxLength: 19,
-                        onChanged: (val) {
-                          if (val.length > _lastCardLength) {
-                            if (val.length < 19 && val.replaceAll(' ', '').length % 4 == 0 && !val.endsWith(' ')) {
-                               _cardNumberController.text = "$val ";
-                               _cardNumberController.selection = TextSelection.fromPosition(TextPosition(offset: _cardNumberController.text.length));
-                            }
-                          }
-                          _lastCardLength = _cardNumberController.text.length;
-                        }
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          _CardNumberFormatter(),
+                        ],
                       ),
                       const SizedBox(height: 15),
                       Row(
@@ -324,15 +318,10 @@ class _PaymentPageState extends State<PaymentPage> {
                               icon: Icons.calendar_today,
                               isNumber: true,
                               maxLength: 5,
-                              onChanged: (val) {
-                                if (val.length > _lastExpiryLength) {
-                                  if (val.length == 2 && !val.contains('/')) {
-                                    _expiryController.text = "$val/";
-                                    _expiryController.selection = TextSelection.fromPosition(TextPosition(offset: _expiryController.text.length));
-                                  }
-                                }
-                                _lastExpiryLength = _expiryController.text.length;
-                              }
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly,
+                                _CardExpiryFormatter(),
+                              ],
                             ),
                           ),
                           const SizedBox(width: 15),
@@ -343,6 +332,9 @@ class _PaymentPageState extends State<PaymentPage> {
                               icon: Icons.lock_outline,
                               isNumber: true,
                               maxLength: 3,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly,
+                              ],
                             ),
                           ),
                         ],
@@ -413,14 +405,14 @@ class _PaymentPageState extends State<PaymentPage> {
     required IconData icon,
     bool isNumber = false,
     int? maxLength,
-    Function(String)? onChanged,
     Widget? suffixIcon,
+    List<TextInputFormatter>? inputFormatters,
   }) {
     return TextFormField(
       controller: controller,
       keyboardType: isNumber ? TextInputType.number : TextInputType.text,
       maxLength: maxLength,
-      onChanged: onChanged,
+      inputFormatters: inputFormatters,
       validator: (value) {
         if (_selectedPaymentMethod == 0 && (value == null || value.isEmpty)) {
           return 'Champ requis';
@@ -486,9 +478,74 @@ class _PaymentPageState extends State<PaymentPage> {
     await Future.delayed(const Duration(seconds: 2));
 
     if (mounted) {
-      Provider.of<Commandeprovider>(context, listen: false).clearCart();
-      Toast.show(context, "Commande validée ! Un livreur est en route 🛵");
-      Navigator.pushNamedAndRemoveUntil(context, AppRoutes.home, (route) => false);
+      try {
+        final cartProvider = Provider.of<Commandeprovider>(context, listen: false);
+        final historyProvider = Provider.of<HistoryProvider>(context, listen: false);
+
+        await historyProvider.createOrderFromCart(cartProvider, widget.totalAmount);
+
+        cartProvider.clearCart();
+
+        Toast.show(context, "Commande validée ! Un livreur est en route 🛵");
+        Navigator.pushNamedAndRemoveUntil(context, AppRoutes.home, (route) => false);
+        
+      } catch (e) {
+        print("Erreur paiement: $e");
+        Toast.show(context, "Erreur lors de la commande");
+        setState(() => _isProcessing = false);
+      }
     }
+  }
+}
+
+class _CardNumberFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    var text = newValue.text;
+    if (newValue.selection.baseOffset == 0) {
+      return newValue;
+    }
+    var buffer = StringBuffer();
+    for (int i = 0; i < text.length; i++) {
+      buffer.write(text[i]);
+      var nonZeroIndex = i + 1;
+      if (nonZeroIndex % 4 == 0 && nonZeroIndex != text.length) {
+        buffer.write(' ');
+      }
+    }
+    var string = buffer.toString();
+    return newValue.copyWith(
+      text: string,
+      selection: TextSelection.collapsed(offset: string.length),
+    );
+  }
+}
+
+class _CardExpiryFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    var newText = newValue.text;
+    if (newValue.selection.baseOffset == 0) {
+      return newValue;
+    }
+    var buffer = StringBuffer();
+    for (int i = 0; i < newText.length; i++) {
+      buffer.write(newText[i]);
+      var nonZeroIndex = i + 1;
+      if (nonZeroIndex % 2 == 0 && nonZeroIndex != newText.length) {
+        buffer.write('/');
+      }
+    }
+    var string = buffer.toString();
+    return newValue.copyWith(
+      text: string,
+      selection: TextSelection.collapsed(offset: string.length),
+    );
   }
 }

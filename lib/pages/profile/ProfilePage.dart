@@ -55,7 +55,6 @@ class _ProfilePageState extends State<ProfilePage> {
           SingleChildScrollView(
             child: Column(
               children: [
-                // EN-TÊTE PROFIL
                 Stack(
                   clipBehavior: Clip.none,
                   alignment: Alignment.center,
@@ -203,13 +202,13 @@ class _ProfilePageState extends State<ProfilePage> {
                           _buildQuickActionCard(
                             Icons.fastfood, 
                             "Mes\nCommandes", 
-                            "", 
-                            isMain: true
+                            AppRoutes.history
                           ),
                           _buildQuickActionCard(
                             Icons.favorite_rounded, 
                             "Plats\nFavoris",  
-                            AppRoutes.favorite 
+                            AppRoutes.favorite,
+                            isMain: true,
                           ),
                           _buildQuickActionCard(
                             Icons.confirmation_number, 
