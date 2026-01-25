@@ -1,6 +1,7 @@
 import 'package:atlas/models/AppRoutes.dart';
+import 'package:atlas/pages/profile/SubscriptionPage.dart';
 import 'package:atlas/providers/CommandeProvider.dart';
-import 'package:atlas/providers/NavigationProvider.dart'; 
+import 'package:atlas/providers/NavigationProvider.dart';
 import 'package:atlas/providers/UserProvider.dart';
 import 'package:atlas/widgets/appbar/customAppbar.dart';
 import 'package:flutter/material.dart';
@@ -25,6 +26,15 @@ class _ProfilePageState extends State<ProfilePage> {
     });
   }
 
+  String _getPlanName(String? planId) {
+    switch (planId) {
+      case 'basic': return 'NOMAD';
+      case 'standard': return 'EXPLORER';
+      case 'premium': return 'ELITE';
+      default: return 'PREMIUM';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final userProvider = context.watch<UserProvider>();
@@ -34,6 +44,8 @@ class _ProfilePageState extends State<ProfilePage> {
     if (user == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator(color: Colors.black)));
     }
+
+    final String planName = _getPlanName(user.planId);
 
     return Scaffold(
       backgroundColor: scaffoldColor,
@@ -63,17 +75,10 @@ class _ProfilePageState extends State<ProfilePage> {
                       height: 240,
                       width: double.infinity,
                       decoration: BoxDecoration(
-                        color: yellowColor,
+                        color: user.premium ? Colors.black : yellowColor, 
                         borderRadius: const BorderRadius.only(
                           bottomLeft: Radius.circular(50),
                           bottomRight: Radius.circular(50),
-                        ),
-                        image: DecorationImage(
-                          image: const AssetImage('assets/icon-burger.png'),
-                          colorFilter: ColorFilter.mode(
-                              Colors.white.withOpacity(0.15), BlendMode.srcIn),
-                          repeat: ImageRepeat.repeat,
-                          scale: 4.0,
                         ),
                       ),
                     ),
@@ -108,24 +113,50 @@ class _ProfilePageState extends State<ProfilePage> {
                                 child: Container(
                                   padding: const EdgeInsets.all(8),
                                   decoration: BoxDecoration(
-                                    color: Colors.redAccent,
+                                    color: user.premium ? yellowColor : Colors.white,
                                     shape: BoxShape.circle,
                                     border: Border.all(color: Colors.white, width: 3),
                                   ),
-                                  child: const Text("🍔", style: TextStyle(fontSize: 16)),
+                                  child: Icon(
+                                    user.premium ? Icons.star : Icons.lunch_dining, 
+                                    size: 20, 
+                                    color: Colors.black
+                                  ),
                                 ),
                               ),
                             ],
                           ),
                           const SizedBox(height: 15),
-                          Text(
-                            user.pseudo,
-                            style: const TextStyle(
-                              fontSize: 26,
-                              fontWeight: FontWeight.w900,
-                              color: Colors.black,
-                              letterSpacing: -0.5,
-                            ),
+                          
+                          Column(
+                            children: [
+                              Text(
+                                user.pseudo,
+                                style: TextStyle(
+                                  fontSize: 26,
+                                  fontWeight: FontWeight.w900,
+                                  color: user.premium ? Colors.white : Colors.black,
+                                  letterSpacing: -0.5,
+                                ),
+                              ),
+                              const SizedBox(height: 5),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: user.premium ? yellowColor : Colors.black12,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Text(
+                                  user.premium ? "MEMBRE $planName" : "MEMBRE CLASSIQUE",
+                                  style: TextStyle(
+                                    fontSize: 10, 
+                                    fontWeight: FontWeight.bold,
+                                    color: user.premium ? Colors.black : Colors.black54,
+                                    letterSpacing: 1
+                                  ),
+                                ),
+                              )
+                            ],
                           ),
                         ],
                       ),
@@ -139,7 +170,9 @@ class _ProfilePageState extends State<ProfilePage> {
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Column(
                     children: [
-                      // CARTE FIDÉLITÉ
+                      _buildSubscriptionCard(user, planName),
+                      const SizedBox(height: 25),
+
                       Container(
                         width: double.infinity,
                         padding: const EdgeInsets.all(25),
@@ -202,13 +235,13 @@ class _ProfilePageState extends State<ProfilePage> {
                           _buildQuickActionCard(
                             Icons.fastfood, 
                             "Mes\nCommandes", 
-                            AppRoutes.history
+                            AppRoutes.history,
                           ),
                           _buildQuickActionCard(
                             Icons.favorite_rounded, 
                             "Plats\nFavoris",  
                             AppRoutes.favorite,
-                            isMain: true,
+                            isMain: true, 
                           ),
                           _buildQuickActionCard(
                             Icons.confirmation_number, 
@@ -270,6 +303,98 @@ class _ProfilePageState extends State<ProfilePage> {
         ],
       ),
     );
+  }
+
+  Widget _buildSubscriptionCard(dynamic user, String planName) {
+    if (user.premium) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: yellowColor.withOpacity(0.8), width: 1.5),
+          boxShadow: [
+            BoxShadow(color: yellowColor.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 4))
+          ]
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(color: yellowColor.withOpacity(0.2), shape: BoxShape.circle),
+                  child: Icon(Icons.star, color: Colors.orange[800], size: 20),
+                ),
+                const SizedBox(width: 15),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("Plan $planName Actif", style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+                    const Text("Avantages débloqués", style: TextStyle(color: Colors.grey, fontSize: 12)),
+                  ],
+                ),
+              ],
+            ),
+            TextButton(
+              onPressed: () {
+                 Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const SubscriptionPage()),
+                );
+              },
+              child: const Text("Gérer", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+            )
+          ],
+        ),
+      );
+    } else {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(colors: [Colors.black, Color(0xFF333333)]),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 15, offset: const Offset(0, 5))
+          ]
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("PASSEZ PREMIUM", style: TextStyle(color: yellowColor, fontWeight: FontWeight.w900, letterSpacing: 1, fontSize: 12)),
+                  const SizedBox(height: 5),
+                  const Text("Livraison offerte & remises", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                  const SizedBox(height: 10),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const SubscriptionPage()),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: yellowColor,
+                      foregroundColor: Colors.black,
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      minimumSize: const Size(0, 35),
+                    ),
+                    child: const Text("S'abonner", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                  )
+                ],
+              ),
+            ),
+            const SizedBox(width: 10),
+            Icon(Icons.diamond_outlined, color: yellowColor.withOpacity(0.3), size: 70),
+          ],
+        ),
+      );
+    }
   }
 
   Widget _buildQuickActionCard(IconData icon, String label, String routeString, {bool isMain = false}) {
