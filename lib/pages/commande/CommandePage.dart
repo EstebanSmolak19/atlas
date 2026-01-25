@@ -206,7 +206,10 @@ class _CommandePageState extends State<CommandePage> {
                       Navigator.pushNamed(
                         context, 
                         AppRoutes.payment,
-                        arguments: cartProvider.total
+                        arguments: {
+                          'total' : cartProvider.total,
+                          'points' : cartProvider.points
+                        }
                       );
                     },
                     style: ElevatedButton.styleFrom(

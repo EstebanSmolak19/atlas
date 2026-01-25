@@ -10,8 +10,9 @@ import 'package:provider/provider.dart';
 
 class PaymentPage extends StatefulWidget {
   final double totalAmount;
+  final int points;
 
-  const PaymentPage({super.key, required this.totalAmount});
+  const PaymentPage({super.key, required this.totalAmount, required this.points});
 
   @override
   State<PaymentPage> createState() => _PaymentPageState();
@@ -481,8 +482,10 @@ class _PaymentPageState extends State<PaymentPage> {
       try {
         final cartProvider = Provider.of<Commandeprovider>(context, listen: false);
         final historyProvider = Provider.of<HistoryProvider>(context, listen: false);
+        final userProvider = Provider.of<UserProvider>(context, listen: false);
 
         await historyProvider.createOrderFromCart(cartProvider, widget.totalAmount);
+        await userProvider.AddPoints(widget.points);
 
         cartProvider.clearCart();
 

@@ -98,4 +98,18 @@ class UserService {
       rethrow;
     }
   }
+
+  //Met à jour le nombre de points.
+  Future<void> addPoints(int points) async {
+    final currentUser = _auth.currentUser;
+    if(currentUser == null) return;
+
+    try {
+      await _firestore.collection('users').doc(currentUser.uid).update({
+        "points": FieldValue.increment(points) 
+      });
+    } catch(e) {
+      rethrow;
+    }
+  }
 }

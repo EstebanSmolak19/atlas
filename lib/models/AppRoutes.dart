@@ -43,10 +43,17 @@ class AppRoutes {
     address      : (context) => const AddressPage(),
     history      : (context) => const HistoryPage(),
 
-    payment      : (context) {
+    payment: (context) {
       final args = ModalRoute.of(context)?.settings.arguments;
-      final double amount = (args is double) ? args : 0.0;
-      return PaymentPage(totalAmount: amount);
+      
+      double amount = 0.0;
+      int points = 0; 
+
+      if (args is Map<String, dynamic>) {
+        amount = (args['total'] as num?)?.toDouble() ?? 0.0;
+        points = (args['points'] as num?)?.toInt() ?? 0;
+      } 
+      return PaymentPage(totalAmount: amount, points: points);
     },
   };
 } 

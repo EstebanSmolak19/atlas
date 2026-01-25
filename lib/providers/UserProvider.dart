@@ -90,8 +90,6 @@ class UserProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // --- GESTION DES ADRESSES ---
-
   Future<void> addAddress(String address) async {
     try {
       await _userService.addAddress(address);
@@ -107,6 +105,15 @@ class UserProvider with ChangeNotifier {
       await loadUser(); // Recharger pour mettre à jour la liste locale
     } catch (e) {
       print("Erreur UserProvider removeAddress: $e");
+    }
+  }
+
+  Future<void> AddPoints(int points) async {
+    try {
+      await _userService.addPoints(points);
+      await loadUser();
+    } catch(e) {
+      print("Erreur UserProvider AddPoints: $e");
     }
   }
 }
