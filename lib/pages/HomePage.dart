@@ -1,4 +1,5 @@
 import 'package:atlas/models/UserModel.dart';
+import 'package:atlas/providers/FavoriteProvider.dart';
 import 'package:atlas/services/UserService.dart';
 import 'package:atlas/widgets/FoodCategoryNavBar.dart';
 import 'package:atlas/widgets/PopularItems.dart';
@@ -7,20 +8,30 @@ import 'package:atlas/widgets/appbar/customAppbar.dart';
 import 'package:flutter/material.dart';
 import 'dart:ui' as ui;
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
   @override
   State<HomePage> createState() => _HomePageState();
-}
 
+}
 class _HomePageState extends State<HomePage> {
   final UserService _userService = UserService();
   final Color yellowColor = const Color.fromARGB(255, 242, 202, 80);
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<FavoriteProvider>(context, listen: false).fetchFavorites();
+    });
+  }
+    
+  @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: const CustomAppBar(),

@@ -12,7 +12,6 @@ class FoodCategoryNavBar extends StatefulWidget {
 }
 
 class _FoodCategoryNavBarState extends State<FoodCategoryNavBar> {
-  int selectedIndex = 0;
 
   @override
   void initState() {
@@ -59,14 +58,9 @@ class _FoodCategoryNavBarState extends State<FoodCategoryNavBar> {
         separatorBuilder: (context, index) => const SizedBox(width: 10),
         itemBuilder: (context, index) {
           final category = categoryProvider.categories[index];
-          final isSelected = selectedIndex == index;
 
           return GestureDetector(
             onTap: () {
-              setState(() {
-                selectedIndex = index;
-              });
-
               ProductType type = _mapStringToEnum(category.name);
 
               Navigator.pushNamed(
@@ -78,7 +72,6 @@ class _FoodCategoryNavBarState extends State<FoodCategoryNavBar> {
             child: CategoryItem(
               imagePath: category.icon,
               label: category.name,
-              isSelected: isSelected,
               width: category.width,
               top: category.top,
             ),
@@ -92,7 +85,6 @@ class _FoodCategoryNavBarState extends State<FoodCategoryNavBar> {
 class CategoryItem extends StatelessWidget {
   final String imagePath;
   final String label;
-  final bool isSelected;
   final double width;
   final double top;
 
@@ -100,7 +92,6 @@ class CategoryItem extends StatelessWidget {
     super.key,
     required this.imagePath,
     required this.label,
-    required this.isSelected,
     required this.width,
     required this.top
   });
@@ -130,10 +121,10 @@ class CategoryItem extends StatelessWidget {
             bottom: 10, 
             child: Text(
               label,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 16, 
                 fontWeight: FontWeight.bold,
-                color: isSelected ? Colors.black : Colors.grey[700],
+                color: Colors.black,
               ),
             ),
           ),

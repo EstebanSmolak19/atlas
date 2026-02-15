@@ -23,7 +23,7 @@ class UserProvider with ChangeNotifier {
       debugPrint("Erreur: $e");
     } finally {
       _isLoading = false;
-      notifyListeners(); 
+      notifyListeners();
     }
   }
 
@@ -37,24 +37,17 @@ class UserProvider with ChangeNotifier {
 
     try {
       await _authService.signIn(email: email, password: password);
-
-      //On charge les données utilisateur
       await loadUser();
-
-      //Si tout est bon, on navigue
       if (context.mounted) {
         Navigator.of(context).pushReplacementNamed(AppRoutes.home);
       }
-
     } catch (e) {
-      //Si erreur, on affiche le message
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Email ou mot de passe incorrect.")),
         );
       }
     } finally {
-      //On arrête le chargement
       _isLoading = false;
       notifyListeners();
     }
@@ -70,21 +63,15 @@ class UserProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      //Appel au service pour créer le compte Auth + Document Firestore
       await _authService.signUp(
-        email: email, 
-        password: password, 
+        email: email,
+        password: password,
         pseudo: pseudo
       );
-
-      //On charge l'utilisateur pour mettre à jour l'état local
       await loadUser();
-
-      //Redirection
       if (context.mounted) {
         Navigator.of(context).pushReplacementNamed(AppRoutes.home);
       }
-
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -96,10 +83,42 @@ class UserProvider with ChangeNotifier {
       notifyListeners();
     }
   }
-  
+
   Future<void> logout() async {
     await _authService.signOut();
     _user = null;
     notifyListeners();
+  }
+
+  Future<void> addAddress(String address) async {
+    try {
+      await _userService.addAddress(address);
+      await loadUser(); // Recharger pour mettre à jour la liste locale
+    } catch (e) {
+      print("Erreur UserProvider addAddress: $e");
+    }
+  }
+
+  Future<void> removeAddress(String address) async {
+    try {
+      await _userService.removeAddress(address);
+      await loadUser(); // Recharger pour mettre à jour la liste locale
+    } catch (e) {
+      print("Erreur UserProvider removeAddress: $e");
+    }
+  }
+
+  Future<void> AddPoints(int points) async {
+    try {
+      await _userService.addPoints(points);
+      await loadUser();
+    } catch(e) {
+      print("Erreur UserProvider AddPoints: $e");
+    }
+  }
+
+  Future<void> deductPoints(int points) async {
+    await _userService.deductPoints(points);
+    await loadUser();
   }
 }

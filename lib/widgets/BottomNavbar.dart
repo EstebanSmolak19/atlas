@@ -1,28 +1,27 @@
+import 'package:atlas/pages/product/FavoritePage.dart';
 import 'package:atlas/pages/HomePage.dart';
-import 'package:atlas/pages/ProfilePage.dart';
+import 'package:atlas/pages/profile/ProfilePage.dart';
+import 'package:atlas/providers/NavigationProvider.dart'; 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-class BottomNavbar extends StatefulWidget {
+class BottomNavbar extends StatelessWidget {
   const BottomNavbar({super.key});
 
-  @override
-  State<BottomNavbar> createState() => _BottomNavbarState();
-}
-
-class _BottomNavbarState extends State<BottomNavbar> {
-  int currentPageIndex = 0;
-
-  final List<Widget> _pages = [
-    const HomePage(),
-    const HomePage(),
-    const ProfilePage(),
+  final List<Widget> _pages = const [
+    HomePage(),
+    FavoritePage(),
+    ProfilePage(),
   ];
 
   @override
   Widget build(BuildContext context) {
+    final navigationProvider = context.watch<NavigationProvider>();
+    final currentIndex = navigationProvider.currentIndex;
+
     return Scaffold(
-      extendBody: true, 
-      body: _pages[currentPageIndex],
+      extendBody: true,
+      body: _pages[currentIndex],
       
       bottomNavigationBar: SafeArea(
         child: Container(
@@ -43,9 +42,9 @@ class _BottomNavbarState extends State<BottomNavbar> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildNavItem(Icons.home, Icons.home_outlined, 0),
-              _buildNavItem(Icons.favorite, Icons.favorite_border, 1),
-              _buildNavItem(Icons.person, Icons.person_outline, 2),
+              _buildNavItem(context, Icons.home, Icons.home_outlined, 0, currentIndex),
+              _buildNavItem(context, Icons.favorite, Icons.favorite_border, 1, currentIndex),
+              _buildNavItem(context, Icons.person, Icons.person_outline, 2, currentIndex),
             ],
           ),
         ),
@@ -53,14 +52,12 @@ class _BottomNavbarState extends State<BottomNavbar> {
     );
   }
 
-  Widget _buildNavItem(IconData activeIcon, IconData inactiveIcon, int index) {
-    bool isSelected = currentPageIndex == index;
+  Widget _buildNavItem(BuildContext context, IconData activeIcon, IconData inactiveIcon, int index, int currentIndex) {
+    bool isSelected = currentIndex == index;
 
     return GestureDetector(
       onTap: () {
-        setState(() {
-          currentPageIndex = index;
-        });
+        context.read<NavigationProvider>().setIndex(index);
       },
       child: Container(
         color: Colors.transparent,
@@ -78,7 +75,6 @@ class _BottomNavbarState extends State<BottomNavbar> {
               ),
               margin: const EdgeInsets.only(bottom: 4),
             ),
-            // L'icône
             Icon(
               isSelected ? activeIcon : inactiveIcon,
               color: isSelected ? Colors.black : Colors.grey.shade600,

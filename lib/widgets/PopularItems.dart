@@ -150,7 +150,7 @@ class _PopularItemsState extends State<PopularItems> {
                         shape: BoxShape.circle,
                       ),
                       child: Image.asset(
-                        'assets/pizza1.png', 
+                        'assets/${item.img_url}', 
                         fit: BoxFit.contain),
                     ),
                   ),

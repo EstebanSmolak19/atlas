@@ -22,6 +22,7 @@ class AuthService {
         "points": 0,
         "premium": false,
         "createdAt": DateTime.now().millisecondsSinceEpoch,
+        "adresses" : []
       });
     } catch(e) {
       rethrow; // On renvoie l'erreur au Provider
