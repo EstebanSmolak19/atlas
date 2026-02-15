@@ -23,9 +23,21 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<UserProvider>(context, listen: false).loadUser();
-      Provider.of<RewardProvider>(context, listen: false).fetchRewards(); // AJOUTÉ
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      final commandeProvider = Provider.of<Commandeprovider>(context, listen: false);
+      final rewardProvider = Provider.of<RewardProvider>(context, listen: false);
+
+      // Charger l'utilisateur d'abord
+      await userProvider.loadUser();
+
+      // IMPORTANT: Mettre à jour le CommandeProvider avec les infos user
+      if (userProvider.user != null) {
+        commandeProvider.updateUser(userProvider.user);
+      }
+
+      // Charger les rewards
+      await rewardProvider.fetchRewards();
     });
   }
 
@@ -79,7 +91,7 @@ class _ProfilePageState extends State<ProfilePage> {
         return tier;
       }
     }
-    return null;
+    return null; // Tous les paliers atteints
   }
 
   // Trouve le dernier palier atteint
@@ -101,7 +113,7 @@ class _ProfilePageState extends State<ProfilePage> {
     final nextTier = _getNextTier(currentPoints, tiers);
 
     if (nextTier == null) {
-      return 1.0; 
+      return 1.0; // Tous les paliers atteints
     }
 
     final int startPoints = lastTier?['points'] ?? 0;
@@ -285,9 +297,18 @@ class _ProfilePageState extends State<ProfilePage> {
     }
 
     final String planName = _getPlanName(user.planId);
+
+    // PROTECTION: S'assurer que commandeProvider a les bonnes infos
+    final int userTotalPoints = user.points;
     final int displayedPoints = commandeProvider.availablePoints;
-    final bool hasUsedPoints = user.points != displayedPoints;
-    final List<Map<String, dynamic>> rewardTiers = _getTiersFromRewards(rewardProvider.rewards); // AJOUTÉ
+
+    // Si displayedPoints est négatif ou supérieur aux points totaux, utiliser les points de l'user
+    final int safeDisplayedPoints = (displayedPoints < 0 || displayedPoints > userTotalPoints)
+        ? userTotalPoints
+        : displayedPoints;
+
+    final bool hasUsedPoints = userTotalPoints != safeDisplayedPoints;
+    final List<Map<String, dynamic>> rewardTiers = _getTiersFromRewards(rewardProvider.rewards);
 
     return Scaffold(
       backgroundColor: scaffoldColor,
@@ -446,7 +467,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
                                 Text(
-                                  "$displayedPoints pts",
+                                  "$safeDisplayedPoints pts",
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 34,
@@ -480,7 +501,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                     border: Border.all(color: yellowColor, width: 1),
                                   ),
                                   child: Text(
-                                    "${user.points - displayedPoints} pts utilisés dans le panier",
+                                    "${user.points - safeDisplayedPoints} pts utilisés dans le panier",
                                     style: TextStyle(
                                       color: yellowColor,
                                       fontSize: 11,
@@ -490,7 +511,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                 ),
                               ),
                             const SizedBox(height: 20),
-                            _buildProgressSection(displayedPoints, rewardTiers),
+                            _buildProgressSection(safeDisplayedPoints, rewardTiers),
                           ],
                         ),
                       ),
