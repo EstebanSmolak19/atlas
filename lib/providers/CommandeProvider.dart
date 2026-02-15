@@ -65,6 +65,7 @@ class Commandeprovider with ChangeNotifier {
   int get points => subTotal.toInt();
 
   void updateUser(UserModel? user) {
+    print("[LOG] Synchronisation du panier avec l'utilisateur: ${user?.pseudo ?? 'Anonyme'}");
     _discount = 0.0;
     _isUserPremium = false;
     _userPlanId = null;
@@ -80,6 +81,8 @@ class Commandeprovider with ChangeNotifier {
         if (user.planId == 'nomad') _discount = 0.05;
         else if (user.planId == 'explorer') _discount = 0.10;
         else if (user.planId == 'elite') _discount = 0.20;
+
+        print("[LOG] Avantages Premium appliqués: $_userPlanId (Remise: ${(_discount * 100).toInt()}%)");
       }
     }
     notifyListeners();
@@ -96,17 +99,19 @@ class Commandeprovider with ChangeNotifier {
   }
 
   void addItem(ProductModel product, int quantity, {bool isReward = false, int? rewardCost, int? rewardTier}) {
-    // Si c'est une récompense, on vérifie les contraintes
     if (isReward) {
-      // NOUVEAU: Vérifier si déjà UNE récompense (peu importe le palier)
+      print("[LOG] Tentative d'ajout d'une récompense: ${product.name} (Coût: $rewardCost pts)");
       if (hasAnyReward()) {
+        print("[LOG] Échec ajout récompense: Une récompense est déjà présente");
         throw Exception("Vous ne pouvez avoir qu'une seule récompense dans votre panier");
       }
 
-      // Vérifier si assez de points
       if (rewardCost != null && !canAffordReward(rewardCost)) {
+        print("[LOG] Échec ajout récompense: Points insuffisants ($availablePoints disponibles)");
         throw Exception("Points insuffisants");
       }
+    } else {
+      print("[LOG] Ajout au panier: ${product.name} x$quantity");
     }
 
     int index = _items.indexWhere((item) =>
@@ -115,8 +120,8 @@ class Commandeprovider with ChangeNotifier {
     );
 
     if (index != -1) {
-      // Pour les récompenses, on ne peut pas augmenter la quantité
       if (isReward) {
+        print("[LOG] Échec ajout récompense: Article déjà présent");
         throw Exception("Vous ne pouvez ajouter qu'une seule fois cet article de récompense");
       }
       _items[index].quantity += quantity;
@@ -129,6 +134,7 @@ class Commandeprovider with ChangeNotifier {
         rewardTier: rewardTier,
       ));
     }
+    print("[LOG] Panier mis à jour. Sous-total: ${subTotal.toStringAsFixed(2)}€");
     notifyListeners();
   }
 
@@ -136,15 +142,17 @@ class Commandeprovider with ChangeNotifier {
     int index = _items.indexOf(item);
     if (index == -1) return;
 
-    // Les récompenses ne peuvent pas avoir leur quantité modifiée
     if (item.isReward && change != -1) {
+      print("[LOG] Tentative interdite de modifier la quantité d'une récompense");
       return;
     }
 
     int newQuantity = _items[index].quantity + change;
+    print("[LOG] Modification quantité: ${item.product.name} ($newQuantity)");
 
     if (newQuantity <= 0) {
       _items.removeAt(index);
+      print("[LOG] Produit retiré du panier");
     } else {
       _items[index].quantity = newQuantity;
     }
@@ -152,17 +160,17 @@ class Commandeprovider with ChangeNotifier {
   }
 
   void removeItem(CartItem item) {
+    print("[LOG] Suppression manuelle du produit: ${item.product.name}");
     _items.remove(item);
     notifyListeners();
   }
 
   void clearCart() {
+    print("[LOG] Vidage complet du panier");
     _items.clear();
     notifyListeners();
   }
 
-  // Méthode pour calculer les points à débiter lors du paiement
-  // (points utilisés pour les récompenses)
   int getPointsToDeduct() {
     return usedRewardPoints;
   }
