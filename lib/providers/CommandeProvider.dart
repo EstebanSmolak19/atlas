@@ -1,34 +1,73 @@
 import 'package:atlas/models/ProductModel.dart';
-import 'package:atlas/widgets/CardItemCommande.dart';
+import 'package:atlas/models/UserModel.dart';
 import 'package:flutter/foundation.dart';
+
+class CartItem {
+  final ProductModel product;
+  int quantity;
+
+  CartItem({required this.product, required this.quantity});
+
+  double get totalPrice => product.price * quantity;
+}
 
 class Commandeprovider with ChangeNotifier {
   final List<CartItem> _items = [];
+  double _discount = 0.0;
+  
+  String? _userPlanId;
+  bool _isUserPremium = false;
 
   List<CartItem> get items => _items;
 
   double get subTotal => _items.fold(0, (sum, item) => sum + item.totalPrice);
-  double get deliveryFee => 2.55; // Frais fixes 
-  double get total => subTotal > 0 ? subTotal + deliveryFee : 0;
+  
+  // Getter dynamique : Calcule les frais à chaque modification du panier
+  double get deliveryFee {
+    if (_isUserPremium) {
+      if (_userPlanId == 'standard' || _userPlanId == 'premium') {
+        return 0.0;
+      }
+      if (_userPlanId == 'basic' && subTotal > 30.00) {
+        return 0.0;
+      }
+    }
+    return 2.55;
+  }
+  
+  double get total {
+    if (subTotal == 0) return 0;
+    return (subTotal * (1 - _discount)) + deliveryFee;
+  }
 
-  //Le nombre de point est identique au prix avant réduction.
   int get points => subTotal.toInt();
 
-  //Ajouter un item au panier.
+  void updateUser(UserModel? user) {
+    _discount = 0.0;
+    _isUserPremium = false;
+    _userPlanId = null;
+
+    if (user != null && user.premium) {
+      _isUserPremium = true;
+      _userPlanId = user.planId;
+
+      if (user.planId == 'basic') _discount = 0.05;
+      else if (user.planId == 'standard') _discount = 0.10;
+      else if (user.planId == 'premium') _discount = 0.20;
+    }
+  }
+
   void addItem(ProductModel product, int quantity) {
     int index = _items.indexWhere((item) => item.product.name == product.name);
 
-    if(index != -1) {
+    if (index != -1) {
       _items[index].quantity += quantity;
-    }
-    else {
+    } else {
       _items.add(CartItem(product: product, quantity: quantity));
     }
-
     notifyListeners();
   }
 
-  //Changer la quantité d'un item.
   void updateQuantity(CartItem item, int change) {
     int index = _items.indexOf(item);
     if (index == -1) return;
@@ -43,14 +82,6 @@ class Commandeprovider with ChangeNotifier {
     notifyListeners();
   }
 
-  //Mert à jour le nombre de points gagné en fonction de la commande.
-  void pointsEarn(ProductModel product, int quantity) {
-    int index = _items.indexWhere((item) => item.product.name == product.name);
-    if(index != -1) {
-    }
-  }
-
-  // Vider le panier (après paiement)
   void clearCart() {
     _items.clear();
     notifyListeners();

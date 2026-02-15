@@ -16,15 +16,29 @@ class _CommandePageState extends State<CommandePage> {
   final Color yellowColor = const Color.fromARGB(255, 242, 202, 80);
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final user = Provider.of<UserProvider>(context, listen: false).user;
+    Provider.of<Commandeprovider>(context, listen: false).updateUser(user);
+  }
+
+  @override
   Widget build(BuildContext context) {
     final cartProvider = context.watch<Commandeprovider>();
     final cartItems = cartProvider.items;
-    final user = context.watch<UserProvider>().user!;
+    final user = context.watch<UserProvider>().user; 
+    final bool isPremium = user?.premium ?? false;
+
+    final double finalAmount = cartProvider.total;
+    
+    final double originalPrice = cartProvider.subTotal + 2.55;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF9F9F9),
       appBar: const ProductAppbar(title: "Panier"),
-      body: Column(
+      body: cartItems.isEmpty 
+        ? const Center(child: Text("Votre panier est vide 🛒")) 
+        : Column(
         children: [
           Expanded(
             child: ListView.separated(
@@ -57,7 +71,11 @@ class _CommandePageState extends State<CommandePage> {
                         ),
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),
-                          child: Image.asset('assets/${item.product.img_url}', fit: BoxFit.contain),
+                          child: Image.asset(
+                            'assets/${item.product.img_url}', 
+                            fit: BoxFit.contain,
+                            errorBuilder: (ctx, err, stack) => Image.asset('assets/pizza1.png'),
+                          ),
                         ),
                       ),
                       const SizedBox(width: 15),
@@ -154,7 +172,10 @@ class _CommandePageState extends State<CommandePage> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text("Frais de livraison", style: TextStyle(color: Colors.grey, fontSize: 16)),
-                    Text("${cartProvider.deliveryFee.toStringAsFixed(2)}€", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    // Affiche "Offert" si 0, sinon le prix
+                    cartProvider.deliveryFee == 0 
+                      ? const Text("Offerts", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.green))
+                      : Text("${cartProvider.deliveryFee.toStringAsFixed(2)}€", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                   ],
                 ),
                 const Padding(
@@ -167,13 +188,13 @@ class _CommandePageState extends State<CommandePage> {
                   children: [
                     const Text("Total", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20)),
                     
-                    user.premium
+                    isPremium
                         ? Column(
                             mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.end, 
                             children: [
                               Text(
-                                "${cartProvider.total.toStringAsFixed(2)}€",
+                                "${originalPrice.toStringAsFixed(2)}€",
                                 style: const TextStyle(
                                   decoration: TextDecoration.lineThrough, 
                                   color: Colors.grey,
@@ -181,7 +202,7 @@ class _CommandePageState extends State<CommandePage> {
                                 ),
                               ),
                               Text(
-                                "${(cartProvider.total * 0.9).toStringAsFixed(2)}€", 
+                                "${finalAmount.toStringAsFixed(2)}€", 
                                 style: const TextStyle(
                                   fontWeight: FontWeight.w900, 
                                   fontSize: 20, 
@@ -191,7 +212,7 @@ class _CommandePageState extends State<CommandePage> {
                             ],
                           )
                         : Text(
-                            "${cartProvider.total.toStringAsFixed(2)} €", 
+                            "${finalAmount.toStringAsFixed(2)} €", 
                             style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 20),
                           ),
                   ],
@@ -202,13 +223,12 @@ class _CommandePageState extends State<CommandePage> {
                   height: 55,
                   child: ElevatedButton(
                     onPressed: cartItems.isEmpty ? null : () {
-
                       Navigator.pushNamed(
                         context, 
                         AppRoutes.payment,
                         arguments: {
-                          'total' : cartProvider.total,
-                          'points' : cartProvider.points
+                          'total': finalAmount,
+                          'points': cartProvider.points
                         }
                       );
                     },
