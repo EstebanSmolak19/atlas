@@ -1,3 +1,4 @@
+import 'package:atlas/pages/RewardPage.dart';
 import 'package:atlas/pages/commande/CommandePage.dart';
 import 'package:atlas/pages/commande/PaymentPage.dart';
 import 'package:atlas/pages/product/FavoritePage.dart';
@@ -29,6 +30,7 @@ class AppRoutes {
   static const String address = '/address';
   static const String history = '/history';
   static const String subscription = '/subscription';
+  static const String reward = '/reward';
 
 
   static final Map<String, WidgetBuilder> routes = {
@@ -45,18 +47,19 @@ class AppRoutes {
     address      : (context) => const AddressPage(),
     history      : (context) => const HistoryPage(),
     subscription : (context) => const SubscriptionPage(),
+    reward       : (context) => const RewardPage(),
 
     payment: (context) {
       final args = ModalRoute.of(context)?.settings.arguments;
-      
+
       double amount = 0.0;
-      int points = 0; 
+      int points = 0;
 
       if (args is Map<String, dynamic>) {
         amount = (args['total'] as num?)?.toDouble() ?? 0.0;
         points = (args['points'] as num?)?.toInt() ?? 0;
-      } 
+      }
       return PaymentPage(totalAmount: amount, points: points);
     },
   };
-} 
+}

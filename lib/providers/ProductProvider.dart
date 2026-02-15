@@ -9,14 +9,14 @@ class ProductProvider with ChangeNotifier {
 
   List<ProductModel> _popularItems = [];
   List<ProductModel> _categoryProducts = [];
-  
+
   bool _isLoading = false;
   bool _isLoadingPopular = false;
   bool _isLoadingCategory = false;
 
   List<ProductModel> get popularItems => _popularItems;
   List<ProductModel> get categoryProducts => _categoryProducts;
-  
+
   bool get isLoading => _isLoading;
   bool get isLoadingPopular => _isLoadingPopular;
   bool get isLoadingCategory => _isLoadingCategory;
@@ -39,8 +39,8 @@ class ProductProvider with ChangeNotifier {
 
   Future<void> fetchProductsByCategory(ProductType type) async {
     _isLoadingCategory = true;
-    _categoryProducts = []; 
-    notifyListeners(); 
+    _categoryProducts = [];
+    notifyListeners();
 
     try {
       _categoryProducts = await _dbService.getProductsByCategory(type.name.toLowerCase());
@@ -62,7 +62,7 @@ class ProductProvider with ChangeNotifier {
     try {
       //On récupère la version fraîche du produit depuis Firestore
       final doc = await FirebaseFirestore.instance.collection('products').doc(productId).get();
-      
+
       if (doc.exists && doc.data() != null) {
         Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
         data['id'] = doc.id;
