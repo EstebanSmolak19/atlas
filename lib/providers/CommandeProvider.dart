@@ -46,10 +46,10 @@ class Commandeprovider with ChangeNotifier {
   // Getter dynamique : Calcule les frais à chaque modification du panier
   double get deliveryFee {
     if (_isUserPremium) {
-      if (_userPlanId == 'standard' || _userPlanId == 'premium') {
+      if (_userPlanId == 'explorer' || _userPlanId == 'elite') {
         return 0.0;
       }
-      if (_userPlanId == 'basic' && subTotal > 30.00) {
+      if (_userPlanId == 'nomad' && subTotal > 30.00) {
         return 0.0;
       }
     }
@@ -77,9 +77,9 @@ class Commandeprovider with ChangeNotifier {
         _isUserPremium = true;
         _userPlanId = user.planId;
 
-        if (user.planId == 'basic') _discount = 0.05;
-        else if (user.planId == 'standard') _discount = 0.10;
-        else if (user.planId == 'premium') _discount = 0.20;
+        if (user.planId == 'nomad') _discount = 0.05;
+        else if (user.planId == 'explorer') _discount = 0.10;
+        else if (user.planId == 'elite') _discount = 0.20;
       }
     }
     notifyListeners();
