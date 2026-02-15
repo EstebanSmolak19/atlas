@@ -7,6 +7,7 @@ import 'package:atlas/providers/NavigationProvider.dart';
 import 'package:atlas/providers/ProductProvider.dart';
 import 'package:atlas/providers/RewardProvider.dart';
 import 'package:atlas/providers/UserProvider.dart';
+import 'package:atlas/services/NotificationService.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
@@ -17,6 +18,12 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  final notificationService = NotificationService();
+  await notificationService.initialize();
+  await notificationService.scheduleDailyLunchNotification();
+
+  await notificationService.sendTestNotification();
 
   runApp(
     MultiProvider(
