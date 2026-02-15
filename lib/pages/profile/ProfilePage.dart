@@ -1,7 +1,9 @@
 import 'package:atlas/models/AppRoutes.dart';
+import 'package:atlas/models/RewardModel.dart';
 import 'package:atlas/pages/profile/SubscriptionPage.dart';
 import 'package:atlas/providers/CommandeProvider.dart';
 import 'package:atlas/providers/NavigationProvider.dart';
+import 'package:atlas/providers/RewardProvider.dart';
 import 'package:atlas/providers/UserProvider.dart';
 import 'package:atlas/widgets/appbar/customAppbar.dart';
 import 'package:flutter/material.dart';
@@ -23,6 +25,7 @@ class _ProfilePageState extends State<ProfilePage> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<UserProvider>(context, listen: false).loadUser();
+      Provider.of<RewardProvider>(context, listen: false).fetchRewards(); // AJOUTÉ
     });
   }
 
@@ -35,10 +38,246 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  // Génère la liste des paliers à partir des rewards
+  List<Map<String, dynamic>> _getTiersFromRewards(List<RewardModel> rewards) {
+    // Grouper les rewards par coût et créer les paliers
+    final Map<int, String> tiers = {};
+
+    for (var reward in rewards) {
+      if (!tiers.containsKey(reward.cost)) {
+        tiers[reward.cost] = _getTierName(reward.cost);
+      }
+    }
+
+    // Convertir en liste triée
+    final List<Map<String, dynamic>> tiersList = [];
+    final sortedCosts = tiers.keys.toList()..sort();
+
+    for (var cost in sortedCosts) {
+      tiersList.add({
+        'points': cost,
+        'name': tiers[cost],
+      });
+    }
+
+    return tiersList;
+  }
+
+  // Même logique que dans RewardPage
+  String _getTierName(int cost) {
+    if (cost <= 50) return "L'Explorateur";
+    if (cost <= 150) return "Le Gourmand";
+    if (cost <= 300) return "L'Aventurier";
+    if (cost <= 500) return "Le Conquérant";
+    return "L'Empereur";
+  }
+
+  // Trouve le prochain palier
+  Map<String, dynamic>? _getNextTier(int currentPoints, List<Map<String, dynamic>> tiers) {
+    for (var tier in tiers) {
+      if (currentPoints < tier['points']) {
+        return tier;
+      }
+    }
+    return null;
+  }
+
+  // Trouve le dernier palier atteint
+  Map<String, dynamic>? _getLastReachedTier(int currentPoints, List<Map<String, dynamic>> tiers) {
+    Map<String, dynamic>? lastTier;
+    for (var tier in tiers) {
+      if (currentPoints >= tier['points']) {
+        lastTier = tier;
+      } else {
+        break;
+      }
+    }
+    return lastTier;
+  }
+
+  // Calcule la progression vers le prochain palier
+  double _getProgressToNextTier(int currentPoints, List<Map<String, dynamic>> tiers) {
+    final lastTier = _getLastReachedTier(currentPoints, tiers);
+    final nextTier = _getNextTier(currentPoints, tiers);
+
+    if (nextTier == null) {
+      return 1.0; 
+    }
+
+    final int startPoints = lastTier?['points'] ?? 0;
+    final int endPoints = nextTier['points'];
+    final int progress = currentPoints - startPoints;
+    final int total = endPoints - startPoints;
+
+    return progress / total;
+  }
+
+  Widget _buildProgressSection(int displayedPoints, List<Map<String, dynamic>> tiers) {
+    if (tiers.isEmpty) {
+      return const Text(
+        "Aucun palier disponible",
+        style: TextStyle(color: Colors.white70, fontSize: 13),
+      );
+    }
+
+    final nextTier = _getNextTier(displayedPoints, tiers);
+    final lastReachedTier = _getLastReachedTier(displayedPoints, tiers);
+    final progress = _getProgressToNextTier(displayedPoints, tiers);
+    final allTiersReached = nextTier == null;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Texte du dernier palier atteint
+        if (lastReachedTier != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Row(
+              children: [
+                Icon(Icons.emoji_events, color: yellowColor, size: 16),
+                const SizedBox(width: 6),
+                Text(
+                  "Palier atteint : ${lastReachedTier['name']}",
+                  style: TextStyle(
+                    color: yellowColor,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+        // Message si tous les paliers sont atteints
+        if (allTiersReached)
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: yellowColor.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: yellowColor, width: 1.5),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.stars, color: yellowColor, size: 24),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    "🎉 Félicitations ! Vous avez atteint tous les paliers !",
+                    style: TextStyle(
+                      color: yellowColor,
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          )
+        else
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Texte du prochain palier
+              Text(
+                "Prochain palier : ${nextTier!['name']}",
+                style: const TextStyle(color: Colors.white70, fontSize: 13),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                "${nextTier['points'] - displayedPoints} pts restants",
+                style: TextStyle(
+                  color: yellowColor,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 10),
+              // Barre de progression
+              Stack(
+                children: [
+                  // Fond de la barre
+                  Container(
+                    height: 12,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  // Progression
+                  FractionallySizedBox(
+                    widthFactor: progress.clamp(0.0, 1.0),
+                    child: Container(
+                      height: 12,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [yellowColor, yellowColor.withOpacity(0.7)],
+                        ),
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: [
+                          BoxShadow(
+                            color: yellowColor.withOpacity(0.5),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  // Indicateur de progression en %
+                  if (progress > 0.15)
+                    Positioned.fill(
+                      child: Align(
+                        alignment: Alignment.centerRight,
+                        child: Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: Text(
+                            "${(progress * 100).toInt()}%",
+                            style: const TextStyle(
+                              color: Colors.black,
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              // Points de début et de fin
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "${lastReachedTier?['points'] ?? 0} pts",
+                    style: const TextStyle(
+                      color: Colors.white54,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    "${nextTier['points']} pts",
+                    style: TextStyle(
+                      color: yellowColor,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final userProvider = context.watch<UserProvider>();
     final commandeProvider = context.watch<Commandeprovider>();
+    final rewardProvider = context.watch<RewardProvider>(); // AJOUTÉ
     final user = userProvider.user;
 
     if (user == null) {
@@ -46,6 +285,9 @@ class _ProfilePageState extends State<ProfilePage> {
     }
 
     final String planName = _getPlanName(user.planId);
+    final int displayedPoints = commandeProvider.availablePoints;
+    final bool hasUsedPoints = user.points != displayedPoints;
+    final List<Map<String, dynamic>> rewardTiers = _getTiersFromRewards(rewardProvider.rewards); // AJOUTÉ
 
     return Scaffold(
       backgroundColor: scaffoldColor,
@@ -63,7 +305,7 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
             ),
           ),
-          
+
           SingleChildScrollView(
             child: Column(
               children: [
@@ -75,7 +317,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       height: 240,
                       width: double.infinity,
                       decoration: BoxDecoration(
-                        color: user.premium ? Colors.black : yellowColor, 
+                        color: user.premium ? Colors.black : yellowColor,
                         borderRadius: const BorderRadius.only(
                           bottomLeft: Radius.circular(50),
                           bottomRight: Radius.circular(50),
@@ -118,8 +360,8 @@ class _ProfilePageState extends State<ProfilePage> {
                                     border: Border.all(color: Colors.white, width: 3),
                                   ),
                                   child: Icon(
-                                    user.premium ? Icons.star : Icons.lunch_dining, 
-                                    size: 20, 
+                                    user.premium ? Icons.star : Icons.lunch_dining,
+                                    size: 20,
                                     color: Colors.black
                                   ),
                                 ),
@@ -127,7 +369,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             ],
                           ),
                           const SizedBox(height: 15),
-                          
+
                           Column(
                             children: [
                               Text(
@@ -149,7 +391,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                 child: Text(
                                   user.premium ? "MEMBRE $planName" : "MEMBRE CLASSIQUE",
                                   style: TextStyle(
-                                    fontSize: 10, 
+                                    fontSize: 10,
                                     fontWeight: FontWeight.bold,
                                     color: user.premium ? Colors.black : Colors.black54,
                                     letterSpacing: 1
@@ -163,9 +405,9 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                   ],
                 ),
-                
+
                 const SizedBox(height: 60),
-                
+
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Column(
@@ -200,59 +442,85 @@ class _ProfilePageState extends State<ProfilePage> {
                               ),
                             ),
                             const SizedBox(height: 5),
-                            Text(
-                              "${user.points} pts",
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 34,
-                                fontWeight: FontWeight.w900,
-                              ),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  "$displayedPoints pts",
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 34,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                ),
+                                if (hasUsedPoints) ...[
+                                  const SizedBox(width: 10),
+                                  Padding(
+                                    padding: const EdgeInsets.only(bottom: 8),
+                                    child: Text(
+                                      "sur ${user.points} pts",
+                                      style: const TextStyle(
+                                        color: Colors.white70,
+                                        fontSize: 14,
+                                        decoration: TextDecoration.lineThrough,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
                             ),
+                            if (hasUsedPoints)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 8),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: yellowColor.withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: yellowColor, width: 1),
+                                  ),
+                                  child: Text(
+                                    "${user.points - displayedPoints} pts utilisés dans le panier",
+                                    style: TextStyle(
+                                      color: yellowColor,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
                             const SizedBox(height: 20),
-                            const Text(
-                              "Prochaine récompense : Menu XL offert !",
-                              style: TextStyle(color: Colors.white70, fontSize: 13),
-                            ),
-                            const SizedBox(height: 10),
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(10),
-                              child: LinearProgressIndicator(
-                                value: 0.8,
-                                backgroundColor: Colors.white.withOpacity(0.2),
-                                valueColor: AlwaysStoppedAnimation<Color>(yellowColor),
-                                minHeight: 8,
-                              ),
-                            ),
+                            _buildProgressSection(displayedPoints, rewardTiers),
                           ],
                         ),
                       ),
-                      
+
                       const SizedBox(height: 30),
-                      
+
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           _buildQuickActionCard(
-                            Icons.fastfood, 
-                            "Mes\nCommandes", 
+                            Icons.fastfood,
+                            "Mes\nCommandes",
                             AppRoutes.history,
                           ),
                           _buildQuickActionCard(
-                            Icons.favorite_rounded, 
-                            "Plats\nFavoris",  
+                            Icons.favorite_rounded,
+                            "Plats\nFavoris",
                             AppRoutes.favorite,
-                            isMain: true, 
+                            isMain: true,
                           ),
                           _buildQuickActionCard(
-                            Icons.confirmation_number, 
-                            "Mes\nCoupons", 
+                            Icons.confirmation_number,
+                            "Mes\nCoupons",
                             ''
                           ),
                         ],
                       ),
-                      
+
                       const SizedBox(height: 30),
-                      
+
                       Container(
                         decoration: BoxDecoration(
                           color: Colors.white,
@@ -275,9 +543,9 @@ class _ProfilePageState extends State<ProfilePage> {
                           ],
                         ),
                       ),
-                      
+
                       const SizedBox(height: 40),
-                      
+
                       TextButton(
                         onPressed: () async {
                           await userProvider.logout();
@@ -418,8 +686,8 @@ class _ProfilePageState extends State<ProfilePage> {
           borderRadius: BorderRadius.circular(24),
           onTap: () {
             if (routeString == AppRoutes.favorite) {
-              context.read<NavigationProvider>().setIndex(1); 
-            } 
+              context.read<NavigationProvider>().setIndex(1);
+            }
             else if (routeString.isNotEmpty) {
               Navigator.pushNamed(context, routeString);
             }

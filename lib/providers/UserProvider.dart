@@ -23,7 +23,7 @@ class UserProvider with ChangeNotifier {
       debugPrint("Erreur: $e");
     } finally {
       _isLoading = false;
-      notifyListeners(); 
+      notifyListeners();
     }
   }
 
@@ -64,8 +64,8 @@ class UserProvider with ChangeNotifier {
 
     try {
       await _authService.signUp(
-        email: email, 
-        password: password, 
+        email: email,
+        password: password,
         pseudo: pseudo
       );
       await loadUser();
@@ -83,7 +83,7 @@ class UserProvider with ChangeNotifier {
       notifyListeners();
     }
   }
-  
+
   Future<void> logout() async {
     await _authService.signOut();
     _user = null;
@@ -115,5 +115,10 @@ class UserProvider with ChangeNotifier {
     } catch(e) {
       print("Erreur UserProvider AddPoints: $e");
     }
+  }
+
+  Future<void> deductPoints(int points) async {
+    await _userService.deductPoints(points);
+    await loadUser();
   }
 }

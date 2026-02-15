@@ -9,7 +9,7 @@ class UserService {
   Future<UserModel?> getCurrentUserDetails() async {
     try {
       final currentUser = _auth.currentUser;
-      if (currentUser == null) return null; 
+      if (currentUser == null) return null;
 
       DocumentSnapshot doc = await _firestore
           .collection('users')
@@ -27,7 +27,7 @@ class UserService {
 
   Future<void> submitReview(String productId, int rating, String comment) async {
     final user = _auth.currentUser;
-    
+
     if (user == null) {
       throw Exception("Vous devez être connecté pour donner votre avis.");
     }
@@ -106,10 +106,17 @@ class UserService {
 
     try {
       await _firestore.collection('users').doc(currentUser.uid).update({
-        "points": FieldValue.increment(points) 
+        "points": FieldValue.increment(points)
       });
     } catch(e) {
       rethrow;
     }
+  }
+
+  Future<void> deductPoints(int points) async {
+    final userId = _auth.currentUser?.uid;
+    await _firestore.collection('users').doc(userId).update({
+      'points': FieldValue.increment(-points),
+    });
   }
 }

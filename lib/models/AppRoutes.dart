@@ -32,7 +32,6 @@ class AppRoutes {
   static const String subscription = '/subscription';
   static const String reward = '/reward';
 
-
   static final Map<String, WidgetBuilder> routes = {
     login        : (context) => const LoginPage(),
     home         : (context) => const BottomNavbar(),
@@ -48,18 +47,23 @@ class AppRoutes {
     history      : (context) => const HistoryPage(),
     subscription : (context) => const SubscriptionPage(),
     reward       : (context) => const RewardPage(),
-
     payment: (context) {
       final args = ModalRoute.of(context)?.settings.arguments;
-
       double amount = 0.0;
       int points = 0;
+      int pointsToDeduct = 0; // AJOUTÉ
 
       if (args is Map<String, dynamic>) {
         amount = (args['total'] as num?)?.toDouble() ?? 0.0;
         points = (args['points'] as num?)?.toInt() ?? 0;
+        pointsToDeduct = (args['pointsToDeduct'] as num?)?.toInt() ?? 0; // AJOUTÉ
       }
-      return PaymentPage(totalAmount: amount, points: points);
+
+      return PaymentPage(
+        totalAmount: amount,
+        points: points,
+        pointsToDeduct: pointsToDeduct,
+      );
     },
   };
 }

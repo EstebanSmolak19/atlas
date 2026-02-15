@@ -4,15 +4,16 @@ import 'package:atlas/providers/HistoryProvider.dart';
 import 'package:atlas/providers/UserProvider.dart';
 import 'package:atlas/widgets/login/Toast.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; 
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 class PaymentPage extends StatefulWidget {
   final double totalAmount;
   final int points;
+  final int pointsToDeduct;
 
-  const PaymentPage({super.key, required this.totalAmount, required this.points});
+  const PaymentPage({super.key, required this.totalAmount, required this.points, this.pointsToDeduct = 0});
 
   @override
   State<PaymentPage> createState() => _PaymentPageState();
@@ -21,9 +22,9 @@ class PaymentPage extends StatefulWidget {
 class _PaymentPageState extends State<PaymentPage> {
   final Color yellowColor = const Color.fromARGB(255, 242, 202, 80);
   final _formKey = GlobalKey<FormState>();
-  
+
   bool _isProcessing = false;
-  int _selectedPaymentMethod = 0; 
+  int _selectedPaymentMethod = 0;
 
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _cardNumberController = TextEditingController();
@@ -63,9 +64,9 @@ class _PaymentPageState extends State<PaymentPage> {
               const SizedBox(height: 20),
               Text("Mes adresses", style: GoogleFonts.lilitaOne(fontSize: 24, color: Colors.black)),
               const SizedBox(height: 20),
-              
+
               Expanded(
-                child: savedAddresses.isEmpty 
+                child: savedAddresses.isEmpty
                 ? Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -193,7 +194,7 @@ class _PaymentPageState extends State<PaymentPage> {
                       decoration: InputDecoration(
                         hintText: "12 Rue de la Pizza, 75000 Paris",
                         prefixIcon: const Icon(Icons.location_on_outlined),
-                        suffixIcon: savedAddresses.isNotEmpty 
+                        suffixIcon: savedAddresses.isNotEmpty
                           ? IconButton(
                               icon: const Icon(Icons.keyboard_arrow_down),
                               onPressed: () => _showAddressPicker(savedAddresses),
@@ -258,9 +259,9 @@ class _PaymentPageState extends State<PaymentPage> {
                                 Text(
                                   _cardNumberController.text.isEmpty ? "**** **** **** ****" : _cardNumberController.text,
                                   style: TextStyle(
-                                    color: Colors.white, 
-                                    fontSize: 22, 
-                                    letterSpacing: 2, 
+                                    color: Colors.white,
+                                    fontSize: 22,
+                                    letterSpacing: 2,
                                     fontFamily: 'Courier',
                                     fontWeight: FontWeight.bold
                                   ),
@@ -295,7 +296,7 @@ class _PaymentPageState extends State<PaymentPage> {
                           );
                         },
                       ),
-                      
+
                       const SizedBox(height: 25),
 
                       _buildTextField(
@@ -484,14 +485,33 @@ class _PaymentPageState extends State<PaymentPage> {
         final historyProvider = Provider.of<HistoryProvider>(context, listen: false);
         final userProvider = Provider.of<UserProvider>(context, listen: false);
 
+        // Créer la commande
         await historyProvider.createOrderFromCart(cartProvider, widget.totalAmount);
-        await userProvider.AddPoints(widget.points);
 
+        // Calculer le solde final des points:
+        // Points gagnés par la commande - Points utilisés pour les récompenses
+        final int pointsToAdd = widget.points; // Points gagnés
+        final int pointsToDeduct = widget.pointsToDeduct; // Points utilisés pour récompenses
+
+        print("Points à ajouter: $pointsToAdd");
+        print("Points à déduire: $pointsToDeduct");
+
+        // D'abord déduire les points des récompenses
+        if (pointsToDeduct > 0) {
+          await userProvider.deductPoints(pointsToDeduct);
+        }
+
+        // Ensuite ajouter les points gagnés
+        if (pointsToAdd > 0) {
+          await userProvider.AddPoints(pointsToAdd);
+        }
+
+        // Vider le panier
         cartProvider.clearCart();
 
         Toast.show(context, "Commande validée ! Un livreur est en route 🛵");
         Navigator.pushNamedAndRemoveUntil(context, AppRoutes.home, (route) => false);
-        
+
       } catch (e) {
         print("Erreur paiement: $e");
         Toast.show(context, "Erreur lors de la commande");
