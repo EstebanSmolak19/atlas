@@ -24,13 +24,15 @@ class ProductProvider with ChangeNotifier {
   Future<void> fetchPopularItems() async {
     if (_popularItems.isNotEmpty) return;
 
+    print("[LOG] Récupération des produits populaires...");
     _isLoadingPopular = true;
     notifyListeners();
 
     try {
       _popularItems = await _dbService.getAllPopularItem();
+      print("[LOG] ${_popularItems.length} produits populaires chargés");
     } catch (e) {
-      print('Erreur fetchPopularItems: $e');
+      print('[LOG] Erreur fetchPopularItems: $e');
     } finally {
       _isLoadingPopular = false;
       notifyListeners();
@@ -38,14 +40,16 @@ class ProductProvider with ChangeNotifier {
   }
 
   Future<void> fetchProductsByCategory(ProductType type) async {
+    print("[LOG] Récupération des produits pour la catégorie: ${type.name}");
     _isLoadingCategory = true;
     _categoryProducts = [];
     notifyListeners();
 
     try {
       _categoryProducts = await _dbService.getProductsByCategory(type.name.toLowerCase());
+      print("[LOG] ${_categoryProducts.length} produits chargés pour ${type.name}");
     } catch (e) {
-      print('Erreur fetchProductsByCategory: $e');
+      print('[LOG] Erreur fetchProductsByCategory: $e');
     } finally {
       _isLoadingCategory = false;
       notifyListeners();
@@ -53,14 +57,14 @@ class ProductProvider with ChangeNotifier {
   }
 
   Future<void> refreshPopularItems() async {
+    print("[LOG] Rafraîchissement des produits populaires");
     _popularItems.clear();
     await fetchPopularItems();
   }
 
-  // Permet de mettre à jour un seul produit dans les listes sans tout recharger
   Future<void> updateSingleProduct(String productId) async {
+    print("[LOG] Mise à jour des données locales pour le produit: $productId");
     try {
-      //On récupère la version fraîche du produit depuis Firestore
       final doc = await FirebaseFirestore.instance.collection('products').doc(productId).get();
 
       if (doc.exists && doc.data() != null) {
@@ -68,22 +72,21 @@ class ProductProvider with ChangeNotifier {
         data['id'] = doc.id;
         final updatedProduct = ProductModel.fromMap(data);
 
-        //On met à jour la liste des Populaires si le produit y est
         final popIndex = _popularItems.indexWhere((p) => p.id == productId);
         if (popIndex != -1) {
           _popularItems[popIndex] = updatedProduct;
         }
 
-        //On met à jour la liste Catégorie si le produit y est
         final catIndex = _categoryProducts.indexWhere((p) => p.id == productId);
         if (catIndex != -1) {
           _categoryProducts[catIndex] = updatedProduct;
         }
 
+        print("[LOG] Produit $productId mis à jour avec succès");
         notifyListeners();
       }
     } catch (e) {
-      print("Erreur updateSingleProduct: $e");
+      print("[LOG] Erreur updateSingleProduct: $e");
     }
   }
 }

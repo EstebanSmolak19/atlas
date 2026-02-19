@@ -18,9 +18,10 @@ class HistoryProvider with ChangeNotifier {
     final user = _auth.currentUser;
     if (user == null) return;
 
+    print("[LOG] Récupération de l'historique des commandes pour: ${user.email}");
     _isLoading = true;
     notifyListeners();
-    
+
     try {
       final snapshot = await _db
           .collection('users')
@@ -32,9 +33,11 @@ class HistoryProvider with ChangeNotifier {
       _orders = snapshot.docs
           .map((doc) => HistoryModel.fromMap(doc.data(), doc.id))
           .toList();
-          
+
+      print("[LOG] ${_orders.length} commandes chargées dans l'historique");
+
     } catch (e) {
-      print("Erreur fetch history: $e");
+      print("[LOG] Erreur fetch history: $e");
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -45,6 +48,8 @@ class HistoryProvider with ChangeNotifier {
     final user = _auth.currentUser;
     if (user == null) throw Exception("Utilisateur non connecté");
 
+    print("[LOG] Tentative de création de commande (Montant: ${totalAmount.toStringAsFixed(2)}€)");
+
     List<Map<String, dynamic>> orderItems = cartProvider.items.map((cartItem) {
       return {
         'productId': cartItem.product.id,
@@ -52,17 +57,24 @@ class HistoryProvider with ChangeNotifier {
         'price': cartItem.product.price,
         'quantity': cartItem.quantity,
         'img_url': cartItem.product.img_url,
+        'details': cartItem.product.description,
       };
     }).toList();
 
-    await _db.collection('users').doc(user.uid).collection('history').add({
-      'userId': user.uid,
-      'total': totalAmount,
-      'status': 'En préparation',
-      'date': FieldValue.serverTimestamp(),
-      'items': orderItems,
-    });
+    try {
+      await _db.collection('users').doc(user.uid).collection('history').add({
+        'userId': user.uid,
+        'total': totalAmount,
+        'status': 'En préparation',
+        'date': FieldValue.serverTimestamp(),
+        'items': orderItems,
+      });
 
-    await fetchUserHistory();
+      print("[LOG] Commande enregistrée avec succès dans Firestore");
+      await fetchUserHistory();
+    } catch (e) {
+      print("[LOG] Erreur lors de la création de la commande: $e");
+      rethrow;
+    }
   }
 }

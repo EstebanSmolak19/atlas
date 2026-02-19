@@ -13,9 +13,8 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
-  final AuthService _authService = AuthService();  
+  final AuthService _authService = AuthService();
   final Color yellowColor = const Color.fromARGB(255, 242, 202, 80);
-  final Color scaffoldColor = const Color(0xFFF9F9F9);
 
   final TextEditingController _pseudoController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
@@ -25,8 +24,8 @@ class _RegisterPageState extends State<RegisterPage> {
   String? _errorMessage;
 
   Future<void> _signUp() async {
-    if (_pseudoController.text.isEmpty || 
-        _emailController.text.isEmpty || 
+    if (_pseudoController.text.isEmpty ||
+        _emailController.text.isEmpty ||
         _passwordController.text.isEmpty) {
       setState(() {
         _errorMessage = "Veuillez remplir tous les champs.";
@@ -73,9 +72,10 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: scaffoldColor,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -94,15 +94,15 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                   ),
                 ),
-                
+
                 Positioned(
-                  top: 65, 
+                  top: 65,
                   child: Center(
                     child: ImageFiltered(
                       imageFilter: ui.ImageFilter.blur(sigmaX: 6.0, sigmaY: 6.0),
                       child: Image.asset(
                         'assets/logo.png',
-                        width: 260, // Légèrement plus petit
+                        width: 260,
                         fit: BoxFit.contain,
                         color: Colors.black.withOpacity(0.4),
                         colorBlendMode: BlendMode.srcIn,
@@ -166,19 +166,19 @@ class _RegisterPageState extends State<RegisterPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   InputField(
-                    label: "Pseudo", 
+                    label: "Pseudo",
                     controller: _pseudoController,
-                    type: InputType.text, 
+                    type: InputType.text,
                   ),
 
                   InputField(
-                    label: "Email", 
+                    label: "Email",
                     controller: _emailController,
                     type: InputType.email
                   ),
 
                   InputField(
-                    label: "Mot de passe", 
+                    label: "Mot de passe",
                     controller: _passwordController,
                     type: InputType.password
                   ),
@@ -208,15 +208,15 @@ class _RegisterPageState extends State<RegisterPage> {
                     child: ElevatedButton(
                       onPressed: _isLoading ? null : _signUp,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black,
-                        foregroundColor: Colors.white,
+                        backgroundColor: isDark ? yellowColor : Colors.black,
+                        foregroundColor: isDark ? Colors.black : Colors.white,
                         elevation: 5,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(15),
                         ),
                       ),
                       child: _isLoading
-                          ? const CircularProgressIndicator(color: Colors.white)
+                          ? CircularProgressIndicator(color: isDark ? Colors.black : Colors.white)
                           : const Text(
                               "S'inscrire",
                               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -229,29 +229,28 @@ class _RegisterPageState extends State<RegisterPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text(
+                      Text(
                         "Déjà un compte ? ",
                         style: TextStyle(
                           fontSize: 14,
-                          color: Colors.black,
+                          color: isDark ? Colors.white70 : Colors.black54,
                         ),
                       ),
                       GestureDetector(
                         onTap: () => AuthSheet.showLogin(context),
-
-                        child: const Text(
+                        child: Text(
                           "Se connecter",
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
-                            color: Colors.black,
+                            color: isDark ? yellowColor : Colors.black,
                             decoration: TextDecoration.underline,
                           ),
                         ),
                       ),
                     ],
                   ),
-                  
+
                   const SizedBox(height: 40),
                 ],
               ),

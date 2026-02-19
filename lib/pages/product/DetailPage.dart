@@ -2,12 +2,12 @@ import 'package:atlas/models/ProductModel.dart';
 import 'package:atlas/pages/MenuSelectionPage.dart';
 import 'package:atlas/pages/product/ReviewPage.dart';
 import 'package:atlas/providers/CommandeProvider.dart';
-import 'package:atlas/services/UserService.dart'; 
+import 'package:atlas/services/UserService.dart';
 import 'package:atlas/widgets/QtyBtn.dart';
 import 'package:atlas/widgets/appbar/detailAppBar.dart';
 import 'package:atlas/widgets/infoBadge.dart';
 import 'package:atlas/widgets/login/Toast.dart';
-import 'package:cloud_firestore/cloud_firestore.dart'; 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -17,7 +17,7 @@ class DetailPage extends StatefulWidget {
 
   const DetailPage({
     super.key,
-    this.isMenu = false, 
+    this.isMenu = false,
   });
 
   @override
@@ -41,10 +41,18 @@ class _DetailPageState extends State<DetailPage> {
     final productArg = ModalRoute.of(context)!.settings.arguments as ProductModel;
     final commandeProvider = context.watch<Commandeprovider>();
 
+    // --- VARIABLES DE THÈME ---
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final Color cardBg = Theme.of(context).cardColor;
+    final Color textColor = isDark ? Colors.white : Colors.black;
+    final Color subTextColor = isDark ? Colors.white70 : Colors.grey[600]!;
+    final Color toggleBg = isDark ? Colors.white10 : const Color(0xFFF5F5F5);
+    // ---------------------------
+
     return StreamBuilder<DocumentSnapshot>(
       stream: FirebaseFirestore.instance.collection('products').doc(productArg.id).snapshots(),
       builder: (context, snapshot) {
-        
+
         ProductModel product = productArg;
         if (snapshot.hasData && snapshot.data!.exists) {
           Map<String, dynamic> data = snapshot.data!.data() as Map<String, dynamic>;
@@ -64,15 +72,18 @@ class _DetailPageState extends State<DetailPage> {
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     gradient: RadialGradient(
-                      colors: [Colors.white.withOpacity(0.6), yellowColor],
+                      colors: [
+                        isDark ? Colors.black26 : Colors.white.withOpacity(0.6),
+                        yellowColor
+                      ],
                       center: Alignment.center,
                       radius: 0.53,
                     ),
                   ),
                   child: Hero(
-                    tag: productArg.name, 
+                    tag: productArg.name,
                     child: Image.asset(
-                      'assets/${product.img_url}', 
+                      'assets/${product.img_url}',
                       fit: BoxFit.contain,
                       errorBuilder: (context, error, stackTrace) => Image.asset('assets/pizza1.png'),
                     ),
@@ -84,14 +95,18 @@ class _DetailPageState extends State<DetailPage> {
                 flex: 5,
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 30),
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.only(
+                  decoration: BoxDecoration(
+                    color: cardBg,
+                    borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(40),
                       topRight: Radius.circular(40),
                     ),
                     boxShadow: [
-                      BoxShadow(color: Colors.black12, blurRadius: 20, offset: Offset(0, -5)),
+                      BoxShadow(
+                        color: isDark ? Colors.black54 : Colors.black12,
+                        blurRadius: 20,
+                        offset: const Offset(0, -5)
+                      ),
                     ],
                   ),
                   child: Column(
@@ -103,8 +118,8 @@ class _DetailPageState extends State<DetailPage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _buildNationalityBadge(product.nationality),
-                              
+                              _buildNationalityBadge(product.nationality, isDark),
+
                               const SizedBox(height: 10),
 
                               Row(
@@ -116,7 +131,7 @@ class _DetailPageState extends State<DetailPage> {
                                       product.name,
                                       style: GoogleFonts.lilitaOne(
                                         fontSize: 28,
-                                        color: Colors.black,
+                                        color: textColor,
                                         height: 1.1,
                                       ),
                                     ),
@@ -127,39 +142,41 @@ class _DetailPageState extends State<DetailPage> {
                                     style: TextStyle(
                                       fontSize: 24,
                                       fontWeight: FontWeight.w900,
-                                      color: yellowColor,
+                                      color: isDark ? yellowColor : const Color(0xFFD4AF37),
                                     ),
                                   ),
                                 ],
                               ),
-                              
+
                               const SizedBox(height: 20),
 
                               Row(
                                 children: [
-                                  buildInfoBadge(Icons.star, product.average.toStringAsFixed(1), Colors.orange),
+                                  // --- CORRECTION : Ajout du paramètre context ---
+                                  buildInfoBadge(context, Icons.star, product.average.toStringAsFixed(1), Colors.orange),
                                   const SizedBox(width: 20),
-                                  buildInfoBadge(Icons.local_fire_department, "${product.calorie.toString()} kcal", Colors.redAccent),
+                                  buildInfoBadge(context, Icons.local_fire_department, "${product.calorie.toString()} kcal", Colors.redAccent),
                                   const SizedBox(width: 20),
-                                  buildInfoBadge(Icons.access_time_filled, "${product.time.toString()} min", Colors.blueGrey),
+                                  buildInfoBadge(context, Icons.access_time_filled, "${product.time.toString()} min", Colors.blueGrey),
+                                  // ----------------------------------------------
                                 ],
                               ),
 
                               const SizedBox(height: 15),
-                              
+
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   GestureDetector(
-                                    onTap: () => _showReviewModal(context, product),
+                                    onTap: () => _showReviewModal(context, product, isDark),
                                     child: Row(
                                       children: [
-                                        Icon(Icons.rate_review_outlined, size: 18, color: Colors.grey[800]),
+                                        Icon(Icons.rate_review_outlined, size: 18, color: subTextColor),
                                         const SizedBox(width: 8),
                                         Text(
                                           "Donner mon avis (${product.rating_count})",
                                           style: TextStyle(
-                                            color: Colors.grey[800],
+                                            color: subTextColor,
                                             fontWeight: FontWeight.bold,
                                             decoration: TextDecoration.underline,
                                           ),
@@ -180,7 +197,7 @@ class _DetailPageState extends State<DetailPage> {
                                     child: Text(
                                       "Voir les avis",
                                       style: TextStyle(
-                                        color: Colors.black,
+                                        color: textColor,
                                         fontWeight: FontWeight.bold,
                                         decoration: TextDecoration.underline,
                                       ),
@@ -196,7 +213,7 @@ class _DetailPageState extends State<DetailPage> {
                                 width: double.infinity,
                                 height: 50,
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFF5F5F5),
+                                  color: toggleBg,
                                   borderRadius: BorderRadius.circular(25),
                                 ),
                                 child: Stack(
@@ -210,7 +227,7 @@ class _DetailPageState extends State<DetailPage> {
                                         child: Container(
                                           margin: const EdgeInsets.all(4),
                                           decoration: BoxDecoration(
-                                            color: Colors.white,
+                                            color: isDark ? Colors.grey[800] : Colors.white,
                                             borderRadius: BorderRadius.circular(25),
                                             boxShadow: [
                                               BoxShadow(
@@ -234,7 +251,7 @@ class _DetailPageState extends State<DetailPage> {
                                                 "Choix simple",
                                                 style: TextStyle(
                                                   fontWeight: FontWeight.bold,
-                                                  color: !isMenu ? Colors.black : Colors.grey,
+                                                  color: !isMenu ? textColor : Colors.grey,
                                                 ),
                                               ),
                                             ),
@@ -249,7 +266,7 @@ class _DetailPageState extends State<DetailPage> {
                                                 "Menu (+3.99€)",
                                                 style: TextStyle(
                                                   fontWeight: FontWeight.bold,
-                                                  color: isMenu ? Colors.black : Colors.grey,
+                                                  color: isMenu ? textColor : Colors.grey,
                                                 ),
                                               ),
                                             ),
@@ -263,11 +280,11 @@ class _DetailPageState extends State<DetailPage> {
 
                               const SizedBox(height: 25),
 
-                              const Text("Description", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                              Text("Description", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textColor)),
                               const SizedBox(height: 10),
                               Text(
                                 product.description,
-                                style: TextStyle(fontSize: 14, color: Colors.grey[600], height: 1.5),
+                                style: TextStyle(fontSize: 14, color: subTextColor, height: 1.5),
                               ),
 
                               const SizedBox(height: 20),
@@ -277,13 +294,13 @@ class _DetailPageState extends State<DetailPage> {
                       ),
 
                       const SizedBox(height: 10),
-                      
+
                       Row(
                         children: [
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFF5F5F5),
+                              color: toggleBg,
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Row(
@@ -296,7 +313,7 @@ class _DetailPageState extends State<DetailPage> {
                                   child: Text(
                                     "$quantity",
                                     textAlign: TextAlign.center,
-                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: textColor),
                                   ),
                                 ),
                                 buildQtyBtn(Icons.add, () => setState(() => quantity++)),
@@ -308,7 +325,6 @@ class _DetailPageState extends State<DetailPage> {
                             child: ElevatedButton(
                               onPressed: () {
                                 if (isMenu) {
-                                  // LOGIQUE MENU : On va vers la page de composition
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
@@ -316,14 +332,13 @@ class _DetailPageState extends State<DetailPage> {
                                     ),
                                   );
                                 } else {
-                                  // LOGIQUE SIMPLE : Ajout direct au panier
                                   commandeProvider.addItem(product, quantity);
                                   Toast.show(context, "${quantity} ${product.name} ajouté au panier !");
                                 }
                               },
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.black,
-                                foregroundColor: Colors.white,
+                                backgroundColor: isDark ? yellowColor : Colors.black,
+                                foregroundColor: isDark ? Colors.black : Colors.white,
                                 padding: const EdgeInsets.symmetric(vertical: 18),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                                 elevation: 5,
@@ -347,52 +362,69 @@ class _DetailPageState extends State<DetailPage> {
     );
   }
 
-  Widget _buildNationalityBadge(String nationality) {
+  Widget _buildNationalityBadge(String nationality, bool isDark) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(20)),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.white12 : Colors.black,
+        borderRadius: BorderRadius.circular(20)
+      ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(Icons.public, color: yellowColor, size: 14),
           const SizedBox(width: 6),
-          Text(nationality.toUpperCase(), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11, letterSpacing: 1)),
+          Text(
+            nationality.toUpperCase(),
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11, letterSpacing: 1)
+          ),
         ],
       ),
     );
   }
 
-  void _showReviewModal(BuildContext context, ProductModel product) {
+  void _showReviewModal(BuildContext context, ProductModel product, bool isDark) {
     showModalBottomSheet(
       context: context,
-      isScrollControlled: true, 
+      isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) {
-        int selectedStars = 5; 
+        int selectedStars = 5;
         final TextEditingController commentController = TextEditingController();
         bool isSending = false;
 
-        return StatefulBuilder( 
+        return StatefulBuilder(
           builder: (context, setModalState) {
             return Container(
               height: MediaQuery.of(context).size.height * 0.6,
               padding: EdgeInsets.only(
-                top: 25, 
-                left: 20, 
+                top: 25,
+                left: 20,
                 right: 20,
                 bottom: MediaQuery.of(context).viewInsets.bottom + 20
               ),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Center(child: Container(width: 50, height: 5, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10)))),
+                  Center(
+                    child: Container(
+                      width: 50, height: 5,
+                      decoration: BoxDecoration(
+                        color: isDark ? Colors.white24 : Colors.grey[300],
+                        borderRadius: BorderRadius.circular(10)
+                      )
+                    )
+                  ),
                   const SizedBox(height: 20),
-                  Text("Noter ${product.name}", style: GoogleFonts.lilitaOne(fontSize: 24)),
+                  Text(
+                    "Noter ${product.name}",
+                    style: GoogleFonts.lilitaOne(fontSize: 24, color: isDark ? Colors.white : Colors.black)
+                  ),
                   const SizedBox(height: 15),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -415,10 +447,12 @@ class _DetailPageState extends State<DetailPage> {
                   TextField(
                     controller: commentController,
                     maxLines: 4,
+                    style: TextStyle(color: isDark ? Colors.white : Colors.black),
                     decoration: InputDecoration(
                       hintText: "Racontez-nous votre expérience culinaire...",
+                      hintStyle: TextStyle(color: isDark ? Colors.white38 : Colors.grey),
                       filled: true,
-                      fillColor: const Color(0xFFF9F9F9),
+                      fillColor: isDark ? Colors.white10 : const Color(0xFFF9F9F9),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(15),
                         borderSide: BorderSide.none,
@@ -445,13 +479,13 @@ class _DetailPageState extends State<DetailPage> {
                         }
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black,
-                        foregroundColor: Colors.white,
+                        backgroundColor: isDark ? yellowColor : Colors.black,
+                        foregroundColor: isDark ? Colors.black : Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                       ),
-                      child: isSending 
-                        ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                      child: isSending
+                        ? CircularProgressIndicator(color: isDark ? Colors.black : Colors.white, strokeWidth: 2)
                         : const Text("Envoyer mon avis", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                     ),
                   ),

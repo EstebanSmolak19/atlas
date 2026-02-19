@@ -15,7 +15,6 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final Color yellowColor = const Color.fromARGB(255, 242, 202, 80);
-  final Color scaffoldColor = const Color(0xFFF9F9F9);
 
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -30,9 +29,11 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     final userProvider = context.watch<UserProvider>();
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final Color textColor = Theme.of(context).textTheme.bodyMedium?.color ?? Colors.black;
 
     return Scaffold(
-      backgroundColor: scaffoldColor,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -52,7 +53,7 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
                 Positioned(
-                  top: 65, 
+                  top: 65,
                   child: Center(
                     child: ImageFiltered(
                       imageFilter: ui.ImageFilter.blur(sigmaX: 6.0, sigmaY: 6.0),
@@ -86,13 +87,13 @@ class _LoginPageState extends State<LoginPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   InputField(
-                    label: "Email", 
+                    label: "Email",
                     controller: _emailController,
                     type: InputType.email
                   ),
 
                   InputField(
-                    label: "Mot de passe", 
+                    label: "Mot de passe",
                     controller: _passwordController,
                     type: InputType.password
                   ),
@@ -111,15 +112,15 @@ class _LoginPageState extends State<LoginPage> {
                         );
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black,
-                        foregroundColor: Colors.white,
+                        backgroundColor: isDark ? yellowColor : Colors.black,
+                        foregroundColor: isDark ? Colors.black : Colors.white,
                         elevation: 5,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(15),
                         ),
                       ),
                       child: userProvider.isLoading
-                          ? const CircularProgressIndicator(color: Colors.white)
+                          ? CircularProgressIndicator(color: isDark ? Colors.black : Colors.white)
                           : const Text(
                               "Se connecter",
                               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -132,17 +133,17 @@ class _LoginPageState extends State<LoginPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text("Pas encore de compte ? ", style: TextStyle(fontSize: 14, color: Colors.black)),
+                      Text("Pas encore de compte ? ", style: TextStyle(fontSize: 14, color: textColor)),
                       GestureDetector(
                         onTap: () => AuthSheet.showRegister(context),
-                        child: const Text(
+                        child: Text(
                           "Créer un compte",
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black, decoration: TextDecoration.underline),
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: isDark ? yellowColor : Colors.black, decoration: TextDecoration.underline),
                         ),
                       ),
                     ],
                   ),
-                  
+
                   const SizedBox(height: 40),
                 ],
               ),

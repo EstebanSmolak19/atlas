@@ -11,8 +11,7 @@ class PopularItems extends StatefulWidget {
 }
 
 class _PopularItemsState extends State<PopularItems> {
-  final Color yellowColor = const Color.fromARGB(255, 250, 215, 109);
-  final Color grayColor = const Color.fromARGB(255, 51, 41, 38).withOpacity(0.6);
+  final Color yellowColor = const Color.fromARGB(255, 242, 202, 80);
 
   @override
   void initState() {
@@ -26,11 +25,12 @@ class _PopularItemsState extends State<PopularItems> {
   Widget build(BuildContext context) {
     final productProvider = context.watch<ProductProvider>();
     final items = productProvider.popularItems;
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
 
     if (productProvider.isLoading) {
-      return const SizedBox(
+      return SizedBox(
         height: 250,
-        child: Center(child: CircularProgressIndicator(color: Colors.black)),
+        child: Center(child: CircularProgressIndicator(color: isDark ? yellowColor : Colors.black)),
       );
     }
 
@@ -42,24 +42,23 @@ class _PopularItemsState extends State<PopularItems> {
     }
 
     return Container(
-      height: 250, 
+      height: 250,
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        clipBehavior: Clip.none, 
+        clipBehavior: Clip.none,
         itemCount: items.length,
         separatorBuilder: (context, index) => const SizedBox(width: 25),
         itemBuilder: (context, index) {
           final item = items[index];
-          
+
           return SizedBox(
             width: 160,
             child: Stack(
-              clipBehavior: Clip.none, 
+              clipBehavior: Clip.none,
               children: [
-                
                 Positioned(
-                  top: 45, 
+                  top: 45,
                   bottom: 0,
                   left: 0,
                   right: 0,
@@ -70,7 +69,7 @@ class _PopularItemsState extends State<PopularItems> {
                       borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.grey.withOpacity(0.1),
+                          color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
                           blurRadius: 10,
                           offset: const Offset(0, 5),
                         ),
@@ -84,6 +83,7 @@ class _PopularItemsState extends State<PopularItems> {
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
+                            color: Colors.black, // Le texte reste noir sur le jaune
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -91,49 +91,48 @@ class _PopularItemsState extends State<PopularItems> {
                         const SizedBox(height: 8),
                         Row(
                           children: [
-                            const Icon(Icons.access_time_filled, color: Colors.black, size: 16),
-                            const SizedBox(width: 4), 
-
+                            const Icon(Icons.access_time_filled, color: Colors.black, size: 14),
+                            const SizedBox(width: 4),
                             Text(
-                              "${item.time.toString()} min", 
-                              style: TextStyle(
-                                color: grayColor,
+                              "${item.time} min",
+                              style: const TextStyle(
+                                color: Colors.black54,
                                 fontWeight: FontWeight.bold,
+                                fontSize: 12,
                               ),
                             ),
-                      
-                            const SizedBox(width: 10), 
-                            const Icon(Icons.star, color: Color.fromARGB(255, 255, 191, 0), size: 16),
-                            const SizedBox(width: 4), 
-
+                            const SizedBox(width: 8),
+                            const Icon(Icons.star, color: Colors.black, size: 14),
+                            const SizedBox(width: 4),
                             Text(
                               "${item.average}",
-                              style: TextStyle(
-                                color: Colors.grey[800],
+                              style: const TextStyle(
+                                color: Colors.black,
                                 fontWeight: FontWeight.bold,
+                                fontSize: 12,
                               ),
                             ),
                           ],
                         ),
+
+                        const SizedBox(height: 10),
 
                         ElevatedButton(
                           onPressed: () {
                             Navigator.pushNamed(context, AppRoutes.detailPage, arguments: item);
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            foregroundColor: Colors.black,
+                            backgroundColor: isDark ? Colors.black : Colors.white,
+                            foregroundColor: isDark ? yellowColor : Colors.black,
                             elevation: 0,
-                            minimumSize: const Size(double.infinity, 40),
+                            minimumSize: const Size(double.infinity, 38),
                             shape: RoundedRectangleBorder(
-                              borderRadius:
-                                  BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(12),
                             ),
                           ),
                           child: Text(
-                            "${item.price.toString()}€",
-                            style: const TextStyle(
-                                fontWeight: FontWeight.bold),
+                            "${item.price.toStringAsFixed(2)}€",
+                            style: const TextStyle(fontWeight: FontWeight.w900),
                           ),
                         )
                       ],
@@ -150,8 +149,11 @@ class _PopularItemsState extends State<PopularItems> {
                         shape: BoxShape.circle,
                       ),
                       child: Image.asset(
-                        'assets/${item.img_url}', 
-                        fit: BoxFit.contain),
+                        'assets/${item.img_url}',
+                        height: 140,
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) => Image.asset('assets/pizza1.png', height: 140),
+                      ),
                     ),
                   ),
                 ),

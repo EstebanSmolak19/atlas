@@ -29,7 +29,6 @@ class _RewardPageState extends State<RewardPage> {
 
   // Récupère un produit par son ID
   Future<ProductModel?> _getProductById(String productId) async {
-    // Check cache d'abord
     if (_productCache.containsKey(productId)) {
       return _productCache[productId];
     }
@@ -54,15 +53,14 @@ class _RewardPageState extends State<RewardPage> {
   }
 
   Future<void> _handleRedeem(RewardModel reward, ProductModel? selectedProduct) async {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
     ProductModel? productToRedeem = selectedProduct;
 
     if (reward.productIds.isNotEmpty && selectedProduct == null) {
-      // L'utilisateur doit choisir un produit
-      productToRedeem = await _showProductSelector(reward);
-      if (productToRedeem == null) return; // Annulé
+      productToRedeem = await _showProductSelector(reward, isDark);
+      if (productToRedeem == null) return;
     }
 
-    // Si pas de produit sélectionné et pas de productIds, on ne peut pas continuer
     if (productToRedeem == null && reward.productIds.isEmpty) {
       Toast.show(context, "Aucun produit disponible pour cette récompense");
       return;
@@ -70,13 +68,11 @@ class _RewardPageState extends State<RewardPage> {
 
     final cartProvider = Provider.of<Commandeprovider>(context, listen: false);
 
-    // Vérifier si l'utilisateur a assez de points (en tenant compte des points déjà utilisés)
     if (!cartProvider.canAffordReward(reward.cost)) {
       Toast.show(context, "Points insuffisants ! Vous avez ${cartProvider.availablePoints} points disponibles.");
       return;
     }
 
-    // Vérifier si l'utilisateur n'a pas déjà UNE récompense dans le panier
     if (cartProvider.hasAnyReward()) {
       Toast.show(context, "Vous ne pouvez avoir qu'une seule récompense dans le panier !");
       return;
@@ -85,29 +81,29 @@ class _RewardPageState extends State<RewardPage> {
     bool? confirm = await showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: Colors.white,
+        backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text("Utiliser ${reward.cost} pts ?",
-            style: GoogleFonts.lilitaOne()),
+            style: GoogleFonts.lilitaOne(color: isDark ? Colors.white : Colors.black)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             if (productToRedeem != null && productToRedeem.img_url.isNotEmpty)
               Image.asset(
-                productToRedeem.img_url,
+                'assets/${productToRedeem.img_url}',
                 height: 80,
                 fit: BoxFit.contain,
                 errorBuilder: (c, e, s) =>
-                    const Icon(Icons.card_giftcard, size: 50),
+                    Icon(Icons.card_giftcard, size: 50, color: isDark ? yellowColor : Colors.black),
               )
             else
-              const Icon(Icons.card_giftcard, size: 50),
+              Icon(Icons.card_giftcard, size: 50, color: isDark ? yellowColor : Colors.black),
             const SizedBox(height: 10),
             Text("Ajouter au panier :",
-                style: TextStyle(color: Colors.grey[600])),
+                style: TextStyle(color: isDark ? Colors.white70 : Colors.grey[600])),
             Text(
               productToRedeem?.name ?? reward.title,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: isDark ? Colors.white : Colors.black),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 10),
@@ -117,11 +113,11 @@ class _RewardPageState extends State<RewardPage> {
                 color: Colors.green.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Row(
+              child: const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(Icons.check_circle, color: Colors.green, size: 16),
-                  const SizedBox(width: 5),
+                  SizedBox(width: 5),
                   Text(
                     "Article gratuit",
                     style: TextStyle(
@@ -143,7 +139,8 @@ class _RewardPageState extends State<RewardPage> {
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.black, foregroundColor: yellowColor),
+                backgroundColor: isDark ? yellowColor : Colors.black,
+                foregroundColor: isDark ? Colors.black : yellowColor),
             child: const Text("Ajouter au panier"),
           )
         ],
@@ -153,7 +150,6 @@ class _RewardPageState extends State<RewardPage> {
     if (confirm != true) return;
 
     try {
-      // Ajouter au panier comme article de récompense
       cartProvider.addItem(
         productToRedeem!,
         1,
@@ -172,8 +168,7 @@ class _RewardPageState extends State<RewardPage> {
     }
   }
 
-  Future<ProductModel?> _showProductSelector(RewardModel reward) async {
-    // Charger tous les produits
+  Future<ProductModel?> _showProductSelector(RewardModel reward, bool isDark) async {
     final List<ProductModel> products = [];
     for (String productId in reward.productIds) {
       final product = await _getProductById(productId);
@@ -186,9 +181,9 @@ class _RewardPageState extends State<RewardPage> {
       context: context,
       backgroundColor: Colors.transparent,
       builder: (ctx) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
         ),
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -198,14 +193,14 @@ class _RewardPageState extends State<RewardPage> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey[300],
+                color: isDark ? Colors.white10 : Colors.grey[300],
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
             const SizedBox(height: 20),
             Text(
               reward.description,
-              style: GoogleFonts.lilitaOne(fontSize: 18),
+              style: GoogleFonts.lilitaOne(fontSize: 18, color: isDark ? Colors.white : Colors.black),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
@@ -222,29 +217,32 @@ class _RewardPageState extends State<RewardPage> {
                     child: Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey[300]!),
+                        color: isDark ? Colors.white.withOpacity(0.05) : Colors.white,
+                        border: Border.all(color: isDark ? Colors.white10 : Colors.grey[300]!),
                         borderRadius: BorderRadius.circular(15),
                       ),
                       child: Row(
                         children: [
                           Image.asset(
-                            product.img_url,
+                            'assets/${product.img_url}',
                             width: 50,
                             height: 50,
                             fit: BoxFit.contain,
                             errorBuilder: (c, e, s) =>
-                                const Icon(Icons.fastfood, size: 50),
+                                Icon(Icons.fastfood, size: 40, color: isDark ? yellowColor : Colors.grey),
                           ),
                           const SizedBox(width: 16),
                           Expanded(
                             child: Text(
                               product.name,
-                              style: const TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.w600),
+                              style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: isDark ? Colors.white : Colors.black),
                             ),
                           ),
                           Icon(Icons.arrow_forward_ios,
-                              size: 16, color: Colors.grey[400]),
+                              size: 16, color: isDark ? Colors.white30 : Colors.grey[400]),
                         ],
                       ),
                     ),
@@ -271,13 +269,16 @@ class _RewardPageState extends State<RewardPage> {
   Widget build(BuildContext context) {
     final userProvider = context.watch<UserProvider>();
     final rewardProvider = context.watch<RewardProvider>();
-    final cartProvider = context.watch<Commandeprovider>(); // AJOUTÉ: pour surveiller les points utilisés
+    final cartProvider = context.watch<Commandeprovider>();
+
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final Color scaffoldBg = Theme.of(context).scaffoldBackgroundColor;
+    final Color textColor = isDark ? Colors.white : Colors.black;
 
     final int currentPoints = userProvider.user?.points ?? 0;
-    final int availablePoints = cartProvider.availablePoints; // AJOUTÉ: points disponibles après déduction
+    final int availablePoints = cartProvider.availablePoints;
     final List<RewardModel> allRewards = rewardProvider.rewards;
 
-    // Regroupement par coût
     final Map<int, List<RewardModel>> groupedRewards = {};
     for (var r in allRewards) {
       if (!groupedRewards.containsKey(r.cost)) groupedRewards[r.cost] = [];
@@ -286,36 +287,36 @@ class _RewardPageState extends State<RewardPage> {
     final List<int> sortedCosts = groupedRewards.keys.toList()..sort();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF9F9F9),
+      backgroundColor: scaffoldBg,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: isDark ? scaffoldBg : Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back, color: textColor),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           "Fidélité",
-          style: GoogleFonts.lilitaOne(color: Colors.black, fontSize: 24),
+          style: GoogleFonts.lilitaOne(color: textColor, fontSize: 24),
         ),
         centerTitle: true,
       ),
       body: rewardProvider.isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: Colors.black))
+          ? Center(child: CircularProgressIndicator(color: isDark ? yellowColor : Colors.black))
           : SingleChildScrollView(
               padding: const EdgeInsets.only(bottom: 40),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildHeaderProgress(currentPoints, availablePoints, sortedCosts), // MODIFIÉ: passe availablePoints
+                  _buildHeaderProgress(currentPoints, availablePoints, sortedCosts, isDark),
                   const SizedBox(height: 10),
                   if (sortedCosts.isEmpty)
-                    const Padding(
-                      padding: EdgeInsets.all(40),
+                    Padding(
+                      padding: const EdgeInsets.all(40),
                       child: Center(
                           child: Text(
-                              "Aucune récompense disponible pour le moment.")),
+                              "Aucune récompense disponible pour le moment.",
+                              style: TextStyle(color: isDark ? Colors.white70 : Colors.black))),
                     )
                   else
                     ListView.builder(
@@ -326,7 +327,7 @@ class _RewardPageState extends State<RewardPage> {
                       itemBuilder: (context, index) {
                         final cost = sortedCosts[index];
                         final items = groupedRewards[cost]!;
-                        return _buildTierSection(cost, items, availablePoints); // MODIFIÉ: utilise availablePoints
+                        return _buildTierSection(cost, items, availablePoints, isDark);
                       },
                     ),
                 ],
@@ -335,24 +336,24 @@ class _RewardPageState extends State<RewardPage> {
     );
   }
 
-  Widget _buildHeaderProgress(int currentPoints, int availablePoints, List<int> sortedCosts) {
+  Widget _buildHeaderProgress(int currentPoints, int availablePoints, List<int> sortedCosts, bool isDark) {
     if (sortedCosts.isEmpty) return const SizedBox();
 
     final bool hasUsedPoints = currentPoints != availablePoints;
+    final Color textColor = isDark ? Colors.white : Colors.brown[800]!;
 
     return Container(
       width: double.infinity,
-      color: Colors.white,
+      color: isDark ? Colors.white.withOpacity(0.03) : Colors.white,
       padding: const EdgeInsets.fromLTRB(20, 10, 20, 30),
       child: Column(
         children: [
-          // Affichage des points avec indication si certains sont utilisés
           if (hasUsedPoints)
             Column(
               children: [
                 Text(
                   "$availablePoints Couronnes",
-                  style: GoogleFonts.lilitaOne(fontSize: 36, color: Colors.brown[800]),
+                  style: GoogleFonts.lilitaOne(fontSize: 36, color: isDark ? yellowColor : textColor),
                 ),
                 const SizedBox(height: 5),
                 Row(
@@ -362,7 +363,7 @@ class _RewardPageState extends State<RewardPage> {
                       "sur $currentPoints pts",
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.grey[600],
+                        color: isDark ? Colors.white38 : Colors.grey[600],
                         decoration: TextDecoration.lineThrough,
                       ),
                     ),
@@ -389,7 +390,7 @@ class _RewardPageState extends State<RewardPage> {
           else
             Text(
               "$currentPoints Couronnes",
-              style: GoogleFonts.lilitaOne(fontSize: 36, color: Colors.brown[800]),
+              style: GoogleFonts.lilitaOne(fontSize: 36, color: isDark ? yellowColor : textColor),
             ),
           const SizedBox(height: 25),
           LayoutBuilder(
@@ -397,15 +398,11 @@ class _RewardPageState extends State<RewardPage> {
               final int segmentsCount = sortedCosts.length;
               double fillPercent = 0.0;
 
-              // Utiliser availablePoints au lieu de currentPoints pour la progression
               if (availablePoints >= sortedCosts.last) {
-                // Tous les paliers atteints
                 fillPercent = 1.0;
               } else if (availablePoints < sortedCosts.first) {
-                // Avant le premier palier
                 fillPercent = (availablePoints / sortedCosts.first) / segmentsCount;
               } else {
-                // Entre deux paliers
                 for (int i = 0; i < sortedCosts.length - 1; i++) {
                   int start = sortedCosts[i];
                   int end = sortedCosts[i + 1];
@@ -417,45 +414,27 @@ class _RewardPageState extends State<RewardPage> {
                     break;
                   }
                 }
-                if (fillPercent == 0.0 && availablePoints >= sortedCosts[sortedCosts.length - 1]) {
-                  fillPercent = (sortedCosts.length - 0.5) / segmentsCount;
-                }
               }
 
               return SizedBox(
                 height: 50,
                 child: Stack(
                   children: [
-                    // Cercles paliers (en arrière-plan pour calculer les positions)
-                    Positioned.fill(
-                      child: Row(
-                        children: List.generate(sortedCosts.length, (index) {
-                          return Expanded(
-                            child: Container(), // Placeholder pour espacer
-                          );
-                        }),
-                      ),
-                    ),
-                    // Fond gris et barre jaune centrés verticalement
                     Positioned(
                       left: 0,
                       right: 0,
-                      top: 13, // Centré avec les cercles (30px de hauteur / 2 - 3px de hauteur barre / 2)
+                      top: 13,
                       child: Stack(
                         children: [
-                          // Fond gris
                           Container(
                             height: 6,
                             decoration: BoxDecoration(
-                              color: Colors.grey[200],
+                              color: isDark ? Colors.white12 : Colors.grey[200],
                               borderRadius: BorderRadius.circular(5),
                             ),
                           ),
-                          // Barre jaune
                           FractionallySizedBox(
-                            widthFactor: fillPercent > 1.0
-                                ? 1.0
-                                : (fillPercent < 0 ? 0 : fillPercent),
+                            widthFactor: fillPercent > 1.0 ? 1.0 : (fillPercent < 0 ? 0 : fillPercent),
                             child: Container(
                               height: 6,
                               decoration: BoxDecoration(
@@ -467,12 +446,11 @@ class _RewardPageState extends State<RewardPage> {
                         ],
                       ),
                     ),
-                    // Cercles paliers au premier plan
                     Positioned.fill(
                       child: Row(
                         children: List.generate(sortedCosts.length, (index) {
                           return Expanded(
-                            child: _buildStepCircle(sortedCosts[index], availablePoints), // MODIFIÉ
+                            child: _buildStepCircle(sortedCosts[index], availablePoints, isDark),
                           );
                         }),
                       ),
@@ -487,7 +465,7 @@ class _RewardPageState extends State<RewardPage> {
     );
   }
 
-  Widget _buildStepCircle(int cost, int currentPoints) {
+  Widget _buildStepCircle(int cost, int currentPoints, bool isDark) {
     bool isReached = currentPoints >= cost;
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
@@ -497,10 +475,10 @@ class _RewardPageState extends State<RewardPage> {
           width: 30,
           height: 30,
           decoration: BoxDecoration(
-              color: isReached ? yellowColor : Colors.white,
+              color: isReached ? yellowColor : (isDark ? const Color(0xFF2C2C2C) : Colors.white),
               shape: BoxShape.circle,
               border: Border.all(
-                  color: isReached ? yellowColor : Colors.grey[300]!, width: 3),
+                  color: isReached ? yellowColor : (isDark ? Colors.white10 : Colors.grey[300]!), width: 3),
               boxShadow: isReached
                   ? [
                       BoxShadow(
@@ -510,7 +488,7 @@ class _RewardPageState extends State<RewardPage> {
                     ]
                   : []),
           child: isReached
-              ? const Icon(Icons.check, size: 16, color: Colors.white)
+              ? const Icon(Icons.check, size: 16, color: Colors.black)
               : null,
         ),
         const SizedBox(height: 4),
@@ -519,18 +497,17 @@ class _RewardPageState extends State<RewardPage> {
           style: TextStyle(
             fontSize: 11,
             fontWeight: FontWeight.w800,
-            color: isReached ? Colors.black : Colors.grey[400],
+            color: isReached ? (isDark ? yellowColor : Colors.black) : (isDark ? Colors.white30 : Colors.grey[400]),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildTierSection(int cost, List<RewardModel> items, int availablePoints) {
+  Widget _buildTierSection(int cost, List<RewardModel> items, int availablePoints, bool isDark) {
     bool isUnlocked = availablePoints >= cost;
     String tierName = _getTierName(cost);
 
-    // NOUVEAU: Vérifier si ce palier est déjà utilisé dans le panier
     final cartProvider = context.watch<Commandeprovider>();
     bool isTierUsedInCart = cartProvider.items.any((item) =>
       item.isReward && item.rewardTier == cost
@@ -539,7 +516,6 @@ class _RewardPageState extends State<RewardPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // TITRE PALIER
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           child: Row(
@@ -550,14 +526,13 @@ class _RewardPageState extends State<RewardPage> {
                   : (isUnlocked ? Icons.lock_open_rounded : Icons.lock_outline_rounded),
                 color: isTierUsedInCart
                   ? Colors.green
-                  : (isUnlocked ? Colors.black : Colors.grey),
+                  : (isUnlocked ? (isDark ? Colors.white : Colors.black) : Colors.grey),
                 size: 22,
               ),
               const SizedBox(width: 10),
               RichText(
                 text: TextSpan(
-                  style: const TextStyle(
-                      fontFamily: 'RedHat', color: Colors.black),
+                  style: TextStyle(fontFamily: 'RedHat', color: isDark ? Colors.white : Colors.black),
                   children: [
                     TextSpan(
                       text: "Palier $cost pts : ",
@@ -566,7 +541,7 @@ class _RewardPageState extends State<RewardPage> {
                           fontSize: 16,
                           color: isTierUsedInCart
                             ? Colors.grey
-                            : (isUnlocked ? Colors.black : Colors.grey)),
+                            : (isUnlocked ? (isDark ? Colors.white : Colors.black) : Colors.grey)),
                     ),
                     TextSpan(
                       text: tierName,
@@ -599,34 +574,30 @@ class _RewardPageState extends State<RewardPage> {
                       color: yellowColor, borderRadius: BorderRadius.circular(4)),
                   child: const Text("DISPONIBLE",
                       style:
-                          TextStyle(fontSize: 9, fontWeight: FontWeight.bold)),
+                          TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.black)),
                 )
             ],
           ),
         ),
 
-        // POUR CHAQUE REWARD DU PALIER - Passer le flag isTierUsedInCart
-        ...items.map((reward) => _buildRewardWithOptions(reward, isUnlocked, isTierUsedInCart)),
+        ...items.map((reward) => _buildRewardWithOptions(reward, isUnlocked, isTierUsedInCart, isDark)),
 
         const SizedBox(height: 20),
       ],
     );
   }
 
-  Widget _buildRewardWithOptions(RewardModel reward, bool isUnlocked, bool isTierUsedInCart) {
-    // Si pas de produits, afficher juste le reward simple
+  Widget _buildRewardWithOptions(RewardModel reward, bool isUnlocked, bool isTierUsedInCart, bool isDark) {
     if (reward.productIds.isEmpty) {
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-        child: _buildSingleRewardCard(reward, isUnlocked && !isTierUsedInCart, null),
+        child: _buildSingleRewardCard(reward, isUnlocked && !isTierUsedInCart, isDark),
       );
     }
 
-    // Si produits disponibles, afficher le titre + les produits en horizontal
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Description du reward
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
           child: Text(
@@ -636,12 +607,11 @@ class _RewardPageState extends State<RewardPage> {
               fontWeight: FontWeight.w600,
               color: isTierUsedInCart
                 ? Colors.grey[400]
-                : (isUnlocked ? Colors.black87 : Colors.grey[600]),
+                : (isUnlocked ? (isDark ? Colors.white70 : Colors.black87) : Colors.grey[600]),
             ),
           ),
         ),
 
-        // Liste horizontale des produits
         SizedBox(
           height: 190,
           child: ListView.separated(
@@ -658,13 +628,13 @@ class _RewardPageState extends State<RewardPage> {
                     return Container(
                       width: 140,
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: isDark ? Colors.white.withOpacity(0.05) : Colors.white,
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: const Center(
+                      child: Center(
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          color: Colors.black,
+                          color: isDark ? yellowColor : Colors.black,
                         ),
                       ),
                     );
@@ -675,7 +645,7 @@ class _RewardPageState extends State<RewardPage> {
                     return const SizedBox.shrink();
                   }
 
-                  return _buildProductCard(reward, product, isUnlocked && !isTierUsedInCart);
+                  return _buildProductCard(reward, product, isUnlocked && !isTierUsedInCart, isDark);
                 },
               );
             },
@@ -685,22 +655,23 @@ class _RewardPageState extends State<RewardPage> {
     );
   }
 
-  Widget _buildProductCard(
-      RewardModel reward, ProductModel product, bool isUnlocked) {
+  Widget _buildProductCard(RewardModel reward, ProductModel product, bool isUnlocked, bool isDark) {
     return Opacity(
       opacity: isUnlocked ? 1.0 : 0.6,
       child: Container(
         width: 140,
         margin: const EdgeInsets.only(bottom: 10),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isDark ? Theme.of(context).cardColor : Colors.white,
           borderRadius: BorderRadius.circular(20),
-          border: isUnlocked
-              ? Border.all(color: Colors.black, width: 2)
-              : Border.all(color: Colors.transparent),
+          border: Border.all(
+            color: isUnlocked
+              ? (isDark ? yellowColor : Colors.black)
+              : Colors.transparent,
+            width: 2),
           boxShadow: [
             BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: Colors.black.withOpacity(isDark ? 0.2 : 0.05),
                 blurRadius: 10,
                 offset: const Offset(0, 4))
           ],
@@ -717,10 +688,10 @@ class _RewardPageState extends State<RewardPage> {
                 children: [
                   Expanded(
                     child: Image.asset(
-                      product.img_url,
+                      'assets/${product.img_url}',
                       fit: BoxFit.contain,
                       errorBuilder: (c, e, s) =>
-                          const Icon(Icons.fastfood, size: 40, color: Colors.grey),
+                          Icon(Icons.fastfood, size: 40, color: isDark ? yellowColor : Colors.grey),
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -732,13 +703,13 @@ class _RewardPageState extends State<RewardPage> {
                     style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 13,
-                        color: isUnlocked ? Colors.black : Colors.grey),
+                        color: isDark ? Colors.white : Colors.black),
                   ),
                   const SizedBox(height: 8),
                   Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
-                      color: isUnlocked ? yellowColor : Colors.grey[200],
+                      color: isUnlocked ? yellowColor : (isDark ? Colors.white10 : Colors.grey[200]),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(Icons.arrow_forward,
@@ -753,28 +724,29 @@ class _RewardPageState extends State<RewardPage> {
     );
   }
 
-  Widget _buildSingleRewardCard(
-      RewardModel reward, bool isUnlocked, ProductModel? product) {
+  Widget _buildSingleRewardCard(RewardModel reward, bool isUnlocked, bool isDark) {
     return Opacity(
       opacity: isUnlocked ? 1.0 : 0.6,
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isDark ? Theme.of(context).cardColor : Colors.white,
           borderRadius: BorderRadius.circular(20),
-          border: isUnlocked
-              ? Border.all(color: Colors.black, width: 2)
-              : Border.all(color: Colors.transparent),
+          border: Border.all(
+            color: isUnlocked
+              ? (isDark ? yellowColor : Colors.black)
+              : Colors.transparent,
+            width: 2),
           boxShadow: [
             BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: Colors.black.withOpacity(isDark ? 0.2 : 0.05),
                 blurRadius: 10,
                 offset: const Offset(0, 4))
           ],
         ),
         child: Row(
           children: [
-            const Icon(Icons.card_giftcard, size: 40),
+            Icon(Icons.card_giftcard, size: 40, color: isDark ? yellowColor : Colors.black),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
@@ -785,21 +757,21 @@ class _RewardPageState extends State<RewardPage> {
                     style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
-                        color: isUnlocked ? Colors.black : Colors.grey),
+                        color: isDark ? Colors.white : Colors.black),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     reward.description,
                     style: TextStyle(
                         fontSize: 13,
-                        color: isUnlocked ? Colors.grey[700] : Colors.grey[500]),
+                        color: isUnlocked ? (isDark ? Colors.white70 : Colors.grey[700]) : Colors.grey[500]),
                   ),
                 ],
               ),
             ),
             if (isUnlocked)
               IconButton(
-                onPressed: () => _handleRedeem(reward, product),
+                onPressed: () => _handleRedeem(reward, null),
                 icon: Icon(Icons.arrow_forward, color: yellowColor),
               ),
           ],

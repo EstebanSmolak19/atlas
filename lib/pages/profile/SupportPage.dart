@@ -9,9 +9,9 @@ class SupportPage extends StatefulWidget {
 }
 
 class _SupportPageState extends State<SupportPage> {
-  final Color yellowColor = const Color(0xFFF2CA50);
+  final Color yellowColor = const Color.fromARGB(255, 242, 202, 80);
   final ScrollController _scrollController = ScrollController();
-  
+
   bool _isMenuOpen = false;
   int? _selectedCategoryIndex;
 
@@ -56,7 +56,7 @@ class _SupportPageState extends State<SupportPage> {
         {
           "q": "Mon plat est arrivé froid",
           "a": "Ce n'est pas la qualité Atlas que nous visons. Assure-toi que le trajet n'était pas trop long. Si c'est anormal, signale-le nous pour obtenir un crédit sur ta prochaine commande."
-        }, 
+        },
         {
           "q": "Erreur sur la commande",
           "a": "Tu as reçu une pizza au lieu d'un burger ? Oups ! Signale-le immédiatement avec une photo. Tu pourras garder le plat reçu et on te remboursera."
@@ -157,7 +157,7 @@ class _SupportPageState extends State<SupportPage> {
         _selectedCategoryIndex = null;
       }
     });
-    
+
     Future.delayed(const Duration(milliseconds: 100), () {
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
@@ -177,14 +177,23 @@ class _SupportPageState extends State<SupportPage> {
 
   @override
   Widget build(BuildContext context) {
+    
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final Color scaffoldBg = Theme.of(context).scaffoldBackgroundColor;
+    final Color cardBg = Theme.of(context).cardColor;
+    final Color textColor = isDark ? Colors.white : Colors.black;
+    final Color assistantBubbleColor = isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFF5F5F5);
+    final Color userBubbleColor = isDark ? yellowColor : Colors.black;
+    final Color userTextColor = isDark ? Colors.black : Colors.white;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: scaffoldBg,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: scaffoldBg,
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back, color: textColor),
           onPressed: () => Navigator.pop(context),
         ),
         title: Row(
@@ -198,7 +207,7 @@ class _SupportPageState extends State<SupportPage> {
             const SizedBox(width: 10),
             Text(
               "Atlas Support",
-              style: GoogleFonts.lilitaOne(color: Colors.black, fontSize: 24),
+              style: GoogleFonts.lilitaOne(color: textColor, fontSize: 24),
             ),
           ],
         ),
@@ -225,20 +234,22 @@ class _SupportPageState extends State<SupportPage> {
                       constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       decoration: BoxDecoration(
-                        color: isUser ? Colors.black : const Color(0xFFF5F5F5),
+                        color: isUser ? userBubbleColor : assistantBubbleColor,
                         borderRadius: BorderRadius.only(
                           topLeft: const Radius.circular(20),
                           topRight: const Radius.circular(20),
                           bottomLeft: isUser ? const Radius.circular(20) : const Radius.circular(0),
                           bottomRight: isUser ? const Radius.circular(0) : const Radius.circular(20),
                         ),
+                        border: !isUser && isDark ? Border.all(color: Colors.white10) : null,
                       ),
                       child: Text(
                         msg['text'],
                         style: TextStyle(
-                          color: isUser ? Colors.white : Colors.black87,
+                          color: isUser ? userTextColor : (isDark ? Colors.white70 : Colors.black87),
                           fontSize: 15,
                           height: 1.4,
+                          fontWeight: isUser ? FontWeight.bold : FontWeight.normal,
                         ),
                       ),
                     ),
@@ -251,13 +262,14 @@ class _SupportPageState extends State<SupportPage> {
           AnimatedContainer(
             duration: const Duration(milliseconds: 400),
             curve: Curves.fastOutSlowIn,
-            height: _isMenuOpen ? 450 : 80, 
+            height: _isMenuOpen ? 450 : 80,
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: cardBg,
               borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+              border: isDark ? const Border(top: BorderSide(color: Colors.white10)) : null,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withOpacity(isDark ? 0.3 : 0.1),
                   blurRadius: 20,
                   offset: const Offset(0, -5),
                 )
@@ -292,13 +304,13 @@ class _SupportPageState extends State<SupportPage> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                _selectedCategoryIndex != null 
+                                _selectedCategoryIndex != null
                                   ? _supportData[_selectedCategoryIndex!]['category']
                                   : "Catégories d'aide",
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.black87,
+                                  color: textColor,
                                 ),
                               ),
                               if (!_isMenuOpen)
@@ -306,7 +318,7 @@ class _SupportPageState extends State<SupportPage> {
                                   "Toucher pour voir les options",
                                   style: TextStyle(
                                     fontSize: 12,
-                                    color: Colors.grey[500],
+                                    color: isDark ? Colors.white38 : Colors.grey[500],
                                   ),
                                 ),
                             ],
@@ -314,15 +326,15 @@ class _SupportPageState extends State<SupportPage> {
                         ),
                         if (_selectedCategoryIndex == null)
                         AnimatedRotation(
-                          turns: _isMenuOpen ? 0.5 : 0, 
+                          turns: _isMenuOpen ? 0.5 : 0,
                           duration: const Duration(milliseconds: 400),
                           child: Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: Colors.grey[100],
+                              color: isDark ? Colors.white10 : Colors.grey[100],
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(Icons.keyboard_arrow_up, color: Colors.black),
+                            child: Icon(Icons.keyboard_arrow_up, color: isDark ? yellowColor : Colors.black),
                           ),
                         ),
                       ],
@@ -347,32 +359,33 @@ class _SupportPageState extends State<SupportPage> {
                                 width: double.infinity,
                                 padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFF9F9F9),
+                                  color: isDark ? Colors.white.withOpacity(0.05) : const Color(0xFFF9F9F9),
                                   borderRadius: BorderRadius.circular(15),
-                                  border: Border.all(color: Colors.grey.shade200),
+                                  border: Border.all(color: isDark ? Colors.white10 : Colors.grey.shade200),
                                 ),
                                 child: Row(
                                   children: [
                                     Container(
-                                      padding: EdgeInsets.all(8),
+                                      padding: const EdgeInsets.all(8),
                                       decoration: BoxDecoration(
-                                        color: Colors.white,
+                                        color: isDark ? Colors.white10 : Colors.white,
                                         shape: BoxShape.circle,
+                                        border: isDark ? Border.all(color: yellowColor.withOpacity(0.3)) : null,
                                       ),
-                                      child: Icon(category['icon'], size: 20, color: Colors.black),
+                                      child: Icon(category['icon'], size: 20, color: isDark ? yellowColor : Colors.black),
                                     ),
-                                    SizedBox(width: 15),
+                                    const SizedBox(width: 15),
                                     Expanded(
                                       child: Text(
                                         category['category'],
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 15,
                                           fontWeight: FontWeight.w700,
-                                          color: Colors.black87,
+                                          color: textColor,
                                         ),
                                       ),
                                     ),
-                                    const Icon(Icons.arrow_forward_ios, size: 12, color: Colors.grey),
+                                    Icon(Icons.arrow_forward_ios, size: 12, color: isDark ? Colors.white24 : Colors.grey),
                                   ],
                                 ),
                               ),
@@ -391,14 +404,14 @@ class _SupportPageState extends State<SupportPage> {
                                 width: double.infinity,
                                 padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
                                 decoration: BoxDecoration(
-                                  color: Colors.white,
+                                  color: isDark ? Colors.white.withOpacity(0.03) : Colors.white,
                                   borderRadius: BorderRadius.circular(15),
-                                  border: Border.all(color: yellowColor.withOpacity(0.3)),
+                                  border: Border.all(color: yellowColor.withOpacity(isDark ? 0.2 : 0.3)),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: yellowColor.withOpacity(0.05),
+                                      color: yellowColor.withOpacity(isDark ? 0.02 : 0.05),
                                       blurRadius: 10,
-                                      offset: Offset(0, 4)
+                                      offset: const Offset(0, 4)
                                     )
                                   ]
                                 ),
@@ -407,10 +420,10 @@ class _SupportPageState extends State<SupportPage> {
                                     Expanded(
                                       child: Text(
                                         q['q'],
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 14,
                                           fontWeight: FontWeight.w500,
-                                          color: Colors.black87,
+                                          color: isDark ? Colors.white70 : Colors.black87,
                                         ),
                                       ),
                                     ),

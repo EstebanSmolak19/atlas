@@ -11,12 +11,14 @@ class AuthSheet extends StatefulWidget {
   const AuthSheet({super.key, this.isLogin = true});
 
   static void showLogin(BuildContext context) {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
       useSafeArea: true,
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(25.0)),
       ),
@@ -27,12 +29,14 @@ class AuthSheet extends StatefulWidget {
   }
 
   static void showRegister(BuildContext context) {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
       useSafeArea: true,
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(25.0)),
       ),
@@ -48,7 +52,7 @@ class AuthSheet extends StatefulWidget {
 
 class _AuthSheetState extends State<AuthSheet> {
   late bool _isLogin;
-  
+
   final TextEditingController _pseudoController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -72,6 +76,8 @@ class _AuthSheetState extends State<AuthSheet> {
   @override
   Widget build(BuildContext context) {
     final userProvider = context.watch<UserProvider>();
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final Color textColor = isDark ? Colors.white : Colors.black;
 
     return Padding(
       padding: EdgeInsets.only(
@@ -87,15 +93,16 @@ class _AuthSheetState extends State<AuthSheet> {
             Center(
               child: Text(
                 _isLogin ? "Connexion" : "Créer un compte",
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
+                  color: textColor,
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 20),
-            
+
             if (!_isLogin)
               InputField(
                 label: "Nom complet",
@@ -108,21 +115,20 @@ class _AuthSheetState extends State<AuthSheet> {
               controller: _emailController,
               type: InputType.email,
             ),
-            
+
             InputField(
               label: "Mot de passe",
               controller: _passwordController,
               type: InputType.password,
             ),
-            
+
             const SizedBox(height: 30),
-            
+
             SizedBox(
               width: double.infinity,
               height: 50,
               child: ElevatedButton(
                 onPressed: userProvider.isLoading ? null : () {
-                   // Validation locale
                   if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
                     Toast.show(context, 'Veuillez remplir tous les champs obligatoires.');
                     return;
@@ -155,10 +161,10 @@ class _AuthSheetState extends State<AuthSheet> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: userProvider.isLoading 
+                child: userProvider.isLoading
                   ? const SizedBox(
-                      height: 20, 
-                      width: 20, 
+                      height: 20,
+                      width: 20,
                       child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black)
                     )
                   : Text(
@@ -175,14 +181,15 @@ class _AuthSheetState extends State<AuthSheet> {
               children: [
                 Text(
                   _isLogin ? "Pas encore de compte ? " : "Déjà un compte ? ",
-                  style: const TextStyle(fontSize: 14),
+                  style: TextStyle(fontSize: 14, color: isDark ? Colors.white70 : Colors.black54),
                 ),
                 GestureDetector(
-                  onTap: () => Navigator.pop(context), // Ferme le modal
+                  onTap: () => Navigator.pop(context),
                   child: Text(
                     _isLogin ? "Créer un compte" : "Se connecter",
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.bold,
+                      color: isDark ? yellowColor : Colors.black,
                       decoration: TextDecoration.underline,
                     ),
                   ),

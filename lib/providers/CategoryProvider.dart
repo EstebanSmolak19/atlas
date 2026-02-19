@@ -8,18 +8,21 @@ class CategoryProvider with ChangeNotifier {
   List<Categorymodel> _categories = [];
   bool _isLoading = false;
 
-  // Getters pour accéder aux données depuis l'UI
   List<Categorymodel> get categories => _categories;
   bool get isLoading => _isLoading;
 
   Future<void> fetchCategories() async {
     if(_categories.isNotEmpty) return;
+
+    print("[LOG] Récupération des catégories depuis la base de données...");
     _isLoading = true;
+    notifyListeners();
 
     try {
       _categories = await _dbService.getCategories();
+      print("[LOG] ${_categories.length} catégories chargées avec succès");
     } catch(e) {
-      print('Erreur Provider ${e}');
+      print('[LOG] Erreur lors de la récupération des catégories: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -27,7 +30,8 @@ class CategoryProvider with ChangeNotifier {
   }
 
   Future<void> refreshCategories() async {
+    print("[LOG] Rafraîchissement manuel des catégories");
     _categories.clear();
-    fetchCategories(); //On recharge les catégories.
+    await fetchCategories();
   }
 }

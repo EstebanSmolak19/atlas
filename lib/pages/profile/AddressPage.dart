@@ -13,37 +13,42 @@ class AddressPage extends StatefulWidget {
 class _AddressPageState extends State<AddressPage> {
   final Color yellowColor = const Color.fromARGB(255, 242, 202, 80);
 
-  void _showAddAddressDialog(BuildContext context) {
+  void _showAddAddressDialog(BuildContext context, bool isDark, Color cardBg, Color textColor) {
     final TextEditingController controller = TextEditingController();
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: Colors.white,
+          backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: Text("Nouvelle adresse", style: GoogleFonts.lilitaOne(fontSize: 24)),
+          title: Text(
+            "Nouvelle adresse",
+            style: GoogleFonts.lilitaOne(fontSize: 24, color: textColor)
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 "Où souhaitez-vous être livré ?",
-                style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                style: TextStyle(color: isDark ? Colors.white70 : Colors.grey[600], fontSize: 14),
               ),
               const SizedBox(height: 15),
               TextField(
                 controller: controller,
+                style: TextStyle(color: textColor),
                 decoration: InputDecoration(
                   hintText: "Ex: 10 Rue de Atlas...",
-                  prefixIcon: Icon(Icons.location_on_outlined, color: Colors.grey[400]),
+                  hintStyle: TextStyle(color: isDark ? Colors.white24 : Colors.grey[400]),
+                  prefixIcon: Icon(Icons.location_on_outlined, color: isDark ? yellowColor : Colors.grey[400]),
                   filled: true,
-                  fillColor: const Color(0xFFF9F9F9),
+                  fillColor: isDark ? Colors.white.withOpacity(0.05) : const Color(0xFFF9F9F9),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(15),
                     borderSide: BorderSide.none
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(15),
-                    borderSide: const BorderSide(color: Colors.black, width: 1.5)
+                    borderSide: BorderSide(color: isDark ? yellowColor : Colors.black, width: 1.5)
                   ),
                 ),
               ),
@@ -69,8 +74,8 @@ class _AddressPageState extends State<AddressPage> {
                       }
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black,
-                      foregroundColor: yellowColor,
+                      backgroundColor: isDark ? yellowColor : Colors.black,
+                      foregroundColor: isDark ? Colors.black : yellowColor,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
@@ -90,8 +95,13 @@ class _AddressPageState extends State<AddressPage> {
     final userProvider = context.watch<UserProvider>();
     final addresses = userProvider.user?.addresses ?? [];
 
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final Color scaffoldBg = Theme.of(context).scaffoldBackgroundColor;
+    final Color cardBg = Theme.of(context).cardColor;
+    final Color textColor = isDark ? Colors.white : Colors.black;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF9F9F9),
+      backgroundColor: scaffoldBg,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -101,18 +111,21 @@ class _AddressPageState extends State<AddressPage> {
           child: IconButton(
             icon: Container(
               padding: const EdgeInsets.all(8),
-              decoration: const BoxDecoration(
-                color: Colors.white,
+              decoration: BoxDecoration(
+                color: isDark ? cardBg : Colors.white,
                 shape: BoxShape.circle,
+                boxShadow: [
+                  if (!isDark) BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 5)
+                ]
               ),
-              child: const Icon(Icons.arrow_back, color: Colors.black, size: 20),
+              child: Icon(Icons.arrow_back, color: textColor, size: 20),
             ),
             onPressed: () => Navigator.pop(context),
           ),
         ),
         title: Text(
           "Mes Adresses",
-          style: GoogleFonts.lilitaOne(color: Colors.black, fontSize: 24),
+          style: GoogleFonts.lilitaOne(color: textColor, fontSize: 24),
         ),
       ),
       body: addresses.isEmpty
@@ -131,19 +144,19 @@ class _AddressPageState extends State<AddressPage> {
                   const SizedBox(height: 20),
                   Text(
                     "Aucune adresse",
-                    style: GoogleFonts.lilitaOne(fontSize: 22, color: Colors.black),
+                    style: GoogleFonts.lilitaOne(fontSize: 22, color: textColor),
                   ),
                   const SizedBox(height: 10),
-                  const Text(
+                  Text(
                     "Ajoutez vos lieux favoris pour\nune livraison express.",
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.grey, fontSize: 14),
+                    style: TextStyle(color: isDark ? Colors.white38 : Colors.grey, fontSize: 14),
                   ),
                 ],
               ),
             )
           : ListView.separated(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 100), // Espace pour le FAB
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
               itemCount: addresses.length,
               separatorBuilder: (ctx, i) => const SizedBox(height: 15),
               itemBuilder: (context, index) {
@@ -151,12 +164,12 @@ class _AddressPageState extends State<AddressPage> {
                 return Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: cardBg,
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.transparent),
+                    border: Border.all(color: isDark ? Colors.white10 : Colors.transparent),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.03),
+                        color: Colors.black.withOpacity(isDark ? 0.2 : 0.03),
                         blurRadius: 15,
                         offset: const Offset(0, 5),
                       )
@@ -167,10 +180,10 @@ class _AddressPageState extends State<AddressPage> {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.black,
+                          color: isDark ? yellowColor : Colors.black,
                           borderRadius: BorderRadius.circular(15),
                         ),
-                        child: Icon(Icons.home_outlined, color: yellowColor, size: 22),
+                        child: Icon(Icons.home_outlined, color: isDark ? Colors.black : yellowColor, size: 22),
                       ),
                       const SizedBox(width: 15),
                       Expanded(
@@ -179,19 +192,19 @@ class _AddressPageState extends State<AddressPage> {
                           children: [
                             Text(
                               "Adresse ${index + 1}",
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.grey,
+                                color: isDark ? Colors.white38 : Colors.grey,
                               ),
                             ),
                             const SizedBox(height: 4),
                             Text(
                               address,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontWeight: FontWeight.w700,
                                 fontSize: 15,
-                                color: Colors.black,
+                                color: textColor,
                               ),
                             ),
                           ],
@@ -201,10 +214,10 @@ class _AddressPageState extends State<AddressPage> {
                         icon: Container(
                           padding: const EdgeInsets.all(5),
                           decoration: BoxDecoration(
-                            color: Colors.red[50],
+                            color: isDark ? Colors.red.withOpacity(0.1) : Colors.red[50],
                             shape: BoxShape.circle,
                           ),
-                          child: Icon(Icons.delete_outline, color: Colors.red[300], size: 18),
+                          child: Icon(Icons.delete_outline, color: isDark ? Colors.red[300] : Colors.red[300], size: 18),
                         ),
                         onPressed: () => userProvider.removeAddress(address),
                       ),
@@ -214,13 +227,13 @@ class _AddressPageState extends State<AddressPage> {
               },
             ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showAddAddressDialog(context),
-        backgroundColor: Colors.black,
+        onPressed: () => _showAddAddressDialog(context, isDark, cardBg, textColor),
+        backgroundColor: isDark ? yellowColor : Colors.black,
         elevation: 5,
-        icon: Icon(Icons.add, color: yellowColor),
+        icon: Icon(Icons.add, color: isDark ? Colors.black : yellowColor),
         label: Text(
           "Ajouter une adresse",
-          style: TextStyle(color: yellowColor, fontWeight: FontWeight.w900),
+          style: TextStyle(color: isDark ? Colors.black : yellowColor, fontWeight: FontWeight.w900),
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
