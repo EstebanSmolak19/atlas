@@ -61,6 +61,22 @@ class UserProvider with ChangeNotifier {
     }
   }
 
+  Future<void> forgotPassword(String email) async {
+    print("[LOG] Tentative d'envoi d'email de récupération pour: $email");
+    _isLoading = true;
+    notifyListeners();
+    try {
+      await _authService.sendPasswordResetEmail(email);
+      print("[LOG] Email de récupération envoyé avec succès");
+    } catch (e) {
+      print("[LOG] Erreur lors de l'envoi de l'email de récupération: $e");
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   Future<void> signUp({
     required String email,
     required String password,

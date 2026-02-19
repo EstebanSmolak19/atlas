@@ -17,14 +17,23 @@ class AuthService {
 
     if (user != null) {
       await _firestore.collection('users').doc(user.uid).set({
+        'uid': user.uid,
         'email': email,
         'pseudo': pseudo,
         'points': 0,
         'premium': false,
-        'planId':  'None',
         'addresses': [],
         'createdAt': FieldValue.serverTimestamp(),
       });
+    }
+  }
+
+  Future<void> sendPasswordResetEmail(String email) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email.trim());
+    } catch (e) {
+      print("[LOG] Erreur sendPasswordResetEmail: $e");
+      rethrow;
     }
   }
 
@@ -33,27 +42,20 @@ class AuthService {
     await _auth.signOut();
   }
 
+  // Suppression définitive
   Future<void> deleteAccount() async {
     auth.User? user = _auth.currentUser;
-
-    if (user == null) {
-      throw Exception("Aucun utilisateur connecté.");
-    }
+    if (user == null) throw Exception("Aucun utilisateur connecté.");
 
     try {
       await _firestore.collection('users').doc(user.uid).delete();
       await user.delete();
-
-      print("[LOG] Compte Firebase et document Firestore supprimés.");
     } on auth.FirebaseAuthException catch (e) {
       if (e.code == 'requires-recent-login') {
-        // On renvoie cette erreur spécifique pour que le Provider puisse
-        // demander à l'utilisateur de se reconnecter avant de réessayer.
         throw Exception("requires-recent-login");
       }
       rethrow;
     } catch (e) {
-      print("[LOG] Erreur imprévue lors de la suppression: $e");
       rethrow;
     }
   }

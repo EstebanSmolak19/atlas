@@ -3,7 +3,9 @@ import 'package:atlas/enum/InputType.dart';
 import 'package:atlas/providers/UserProvider.dart';
 import 'package:atlas/widgets/login/AuthSheet.dart';
 import 'package:atlas/widgets/login/inputField.dart';
+import 'package:atlas/widgets/login/Toast.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 class LoginPage extends StatefulWidget {
@@ -24,6 +26,63 @@ class _LoginPageState extends State<LoginPage> {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  void _showForgotPasswordDialog(BuildContext context) {
+    final TextEditingController resetController = TextEditingController();
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          "Réinitialisation",
+          style: GoogleFonts.lilitaOne(color: isDark ? Colors.white : Colors.black)
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Saisissez votre email pour recevoir un lien de réinitialisation.",
+              style: TextStyle(color: Colors.grey, fontSize: 14),
+            ),
+            const SizedBox(height: 20),
+            InputField(
+              label: "Votre Email",
+              controller: resetController,
+              type: InputType.email,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("ANNULER", style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (resetController.text.isNotEmpty) {
+                await Provider.of<UserProvider>(context, listen: false)
+                    .forgotPassword(resetController.text);
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  Toast.show(context, "Email envoyé ! Vérifiez votre boîte de réception 📧");
+                }
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: isDark ? yellowColor : Colors.black,
+              foregroundColor: isDark ? Colors.black : yellowColor,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text("ENVOYER", style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -98,7 +157,23 @@ class _LoginPageState extends State<LoginPage> {
                     type: InputType.password
                   ),
 
-                  const SizedBox(height: 10),
+                  // --- AJOUT : LIEN MOT DE PASSE OUBLIÉ ---
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: GestureDetector(
+                      onTap: () => _showForgotPasswordDialog(context),
+                      child: Text(
+                        "Mot de passe oublié ?",
+                        style: TextStyle(
+                          color: isDark ? yellowColor : Colors.black87,
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 25),
 
                   SizedBox(
                     width: double.infinity,
