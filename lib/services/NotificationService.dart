@@ -12,7 +12,6 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin _localNotifications =
       FlutterLocalNotificationsPlugin();
 
-  /// Initialiser le service de notifications
   Future<void> initialize() async {
     // Sur le Web, les notifications locales planifiées ne fonctionnent pas
     if (kIsWeb) {

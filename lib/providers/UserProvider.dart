@@ -105,6 +105,24 @@ class UserProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> deleteAccount() async {
+    print("[LOG] Tentative de suppression définitive du compte");
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      await _authService.deleteAccount();
+      _user = null;
+      print("[LOG] Compte supprimé avec succès");
+    } catch (e) {
+      print("[LOG] Erreur lors de la suppression du compte: $e");
+      rethrow; // On propage l'erreur pour l'afficher dans l'UI
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   Future<void> addAddress(String address) async {
     print("[LOG] Ajout de l'adresse: $address");
     try {

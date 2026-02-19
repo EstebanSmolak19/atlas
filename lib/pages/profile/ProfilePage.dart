@@ -5,9 +5,9 @@ import 'package:atlas/providers/CommandeProvider.dart';
 import 'package:atlas/providers/NavigationProvider.dart';
 import 'package:atlas/providers/RewardProvider.dart';
 import 'package:atlas/providers/UserProvider.dart';
-import 'package:atlas/providers/ThemeProvider.dart';
 import 'package:atlas/widgets/appbar/customAppbar.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -23,22 +23,19 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final userProvider = Provider.of<UserProvider>(context, listen: false);
-      final commandeProvider = Provider.of<Commandeprovider>(context, listen: false);
-      final rewardProvider = Provider.of<RewardProvider>(context, listen: false);
+    _refreshAllData();
+  }
 
-      // Charger l'utilisateur d'abord
-      await userProvider.loadUser();
+  Future<void> _refreshAllData() async {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final commandeProvider = Provider.of<Commandeprovider>(context, listen: false);
+    final rewardProvider = Provider.of<RewardProvider>(context, listen: false);
 
-      // IMPORTANT: Mettre à jour le CommandeProvider avec les infos user
-      if (userProvider.user != null) {
-        commandeProvider.updateUser(userProvider.user);
-      }
-
-      // Charger les rewards
-      await rewardProvider.fetchRewards();
-    });
+    await userProvider.loadUser();
+    if (userProvider.user != null) {
+      commandeProvider.updateUser(userProvider.user);
+    }
+    await rewardProvider.fetchRewards();
   }
 
   String _getPlanName(String? planId) {
@@ -50,26 +47,74 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  // Génère la liste des paliers à partir des rewards
+  void _showDeleteAccountDialog(BuildContext context) {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final commandeProvider = Provider.of<Commandeprovider>(context, listen: false);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+        title: Text(
+          "Supprimer le compte ?",
+          style: GoogleFonts.lilitaOne(color: isDark ? Colors.white : Colors.black)
+        ),
+        content: const Text(
+          "Attention : Cette action est irréversible. Vous perdrez définitivement vos points de fidélité, vos avantages Premium et l'historique de vos commandes.",
+          style: TextStyle(color: Colors.grey),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("ANNULER", style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              try {
+                await userProvider.deleteAccount();
+                commandeProvider.clearCart();
+                if (context.mounted) {
+                  Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text("Pour votre sécurité, veuillez vous reconnecter avant de supprimer votre compte."),
+                      backgroundColor: Colors.redAccent,
+                    ),
+                  );
+                }
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red[700],
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+            ),
+            child: const Text("SUPPRIMER", style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
   List<Map<String, dynamic>> _getTiersFromRewards(List<RewardModel> rewards) {
     final Map<int, String> tiers = {};
-
     for (var reward in rewards) {
       if (!tiers.containsKey(reward.cost)) {
         tiers[reward.cost] = _getTierName(reward.cost);
       }
     }
-
     final List<Map<String, dynamic>> tiersList = [];
     final sortedCosts = tiers.keys.toList()..sort();
-
     for (var cost in sortedCosts) {
-      tiersList.add({
-        'points': cost,
-        'name': tiers[cost],
-      });
+      tiersList.add({'points': cost, 'name': tiers[cost]});
     }
-
     return tiersList;
   }
 
@@ -83,9 +128,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Map<String, dynamic>? _getNextTier(int currentPoints, List<Map<String, dynamic>> tiers) {
     for (var tier in tiers) {
-      if (currentPoints < tier['points']) {
-        return tier;
-      }
+      if (currentPoints < tier['points']) return tier;
     }
     return null;
   }
@@ -105,27 +148,18 @@ class _ProfilePageState extends State<ProfilePage> {
   double _getProgressToNextTier(int currentPoints, List<Map<String, dynamic>> tiers) {
     final lastTier = _getLastReachedTier(currentPoints, tiers);
     final nextTier = _getNextTier(currentPoints, tiers);
-
-    if (nextTier == null) {
-      return 1.0;
-    }
-
+    if (nextTier == null) return 1.0;
     final int startPoints = lastTier?['points'] ?? 0;
     final int endPoints = nextTier['points'];
     final int progress = currentPoints - startPoints;
     final int total = endPoints - startPoints;
-
     return progress / total;
   }
 
   Widget _buildProgressSection(int displayedPoints, List<Map<String, dynamic>> tiers) {
     if (tiers.isEmpty) {
-      return const Text(
-        "Aucun palier disponible",
-        style: TextStyle(color: Colors.white70, fontSize: 13),
-      );
+      return const Text("Aucun palier disponible", style: TextStyle(color: Colors.white70, fontSize: 13));
     }
-
     final nextTier = _getNextTier(displayedPoints, tiers);
     final lastReachedTier = _getLastReachedTier(displayedPoints, tiers);
     final progress = _getProgressToNextTier(displayedPoints, tiers);
@@ -143,16 +177,11 @@ class _ProfilePageState extends State<ProfilePage> {
                 const SizedBox(width: 6),
                 Text(
                   "Palier atteint : ${lastReachedTier['name']}",
-                  style: TextStyle(
-                    color: yellowColor,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(color: yellowColor, fontSize: 12, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
           ),
-
         if (allTiersReached)
           Container(
             padding: const EdgeInsets.all(12),
@@ -165,15 +194,8 @@ class _ProfilePageState extends State<ProfilePage> {
               children: [
                 Icon(Icons.stars, color: yellowColor, size: 24),
                 const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    "🎉 Félicitations ! Vous avez atteint tous les paliers !",
-                    style: TextStyle(
-                      color: yellowColor,
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                const Expanded(
+                  child: Text("🎉 Félicitations ! Vous avez atteint tous les paliers !", style: TextStyle(color: Color.fromARGB(255, 242, 202, 80), fontSize: 13, fontWeight: FontWeight.bold)),
                 ),
               ],
             ),
@@ -182,85 +204,22 @@ class _ProfilePageState extends State<ProfilePage> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                "Prochain palier : ${nextTier!['name']}",
-                style: const TextStyle(color: Colors.white70, fontSize: 13),
-              ),
+              Text("Prochain palier : ${nextTier!['name']}", style: const TextStyle(color: Colors.white70, fontSize: 13)),
               const SizedBox(height: 4),
-              Text(
-                "${nextTier['points'] - displayedPoints} pts restants",
-                style: TextStyle(
-                  color: yellowColor,
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              Text("${nextTier['points'] - displayedPoints} pts restants", style: TextStyle(color: yellowColor, fontSize: 12, fontWeight: FontWeight.bold)),
               const SizedBox(height: 10),
               Stack(
                 children: [
-                  Container(
-                    height: 12,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
+                  Container(height: 12, decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(10))),
                   FractionallySizedBox(
                     widthFactor: progress.clamp(0.0, 1.0),
                     child: Container(
                       height: 12,
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [yellowColor, yellowColor.withOpacity(0.7)],
-                        ),
+                        gradient: LinearGradient(colors: [yellowColor, yellowColor.withOpacity(0.7)]),
                         borderRadius: BorderRadius.circular(10),
-                        boxShadow: [
-                          BoxShadow(
-                            color: yellowColor.withOpacity(0.5),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
+                        boxShadow: [BoxShadow(color: yellowColor.withOpacity(0.5), blurRadius: 8, offset: const Offset(0, 2))],
                       ),
-                    ),
-                  ),
-                  if (progress > 0.15)
-                    Positioned.fill(
-                      child: Align(
-                        alignment: Alignment.centerRight,
-                        child: Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: Text(
-                            "${(progress * 100).toInt()}%",
-                            style: const TextStyle(
-                              color: Colors.black,
-                              fontSize: 9,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "${lastReachedTier?['points'] ?? 0} pts",
-                    style: const TextStyle(
-                      color: Colors.white54,
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    "${nextTier['points']} pts",
-                    style: TextStyle(
-                      color: yellowColor,
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ],
@@ -276,28 +235,20 @@ class _ProfilePageState extends State<ProfilePage> {
     final userProvider = context.watch<UserProvider>();
     final commandeProvider = context.watch<Commandeprovider>();
     final rewardProvider = context.watch<RewardProvider>();
-    final themeProvider = context.watch<ThemeProvider>();
     final user = userProvider.user;
 
-    // --- LOGIQUE DE THÈME DYNAMIQUE ---
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
     final Color scaffoldBg = Theme.of(context).scaffoldBackgroundColor;
     final Color cardBg = Theme.of(context).cardColor;
     final Color dividerColor = Theme.of(context).dividerColor;
-    final Color textColor = Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black;
 
     if (user == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator(color: Colors.black)));
     }
 
     final String planName = _getPlanName(user.planId);
-    final int userTotalPoints = user.points;
-    final int displayedPoints = commandeProvider.availablePoints;
-    final int safeDisplayedPoints = (displayedPoints < 0 || displayedPoints > userTotalPoints)
-        ? userTotalPoints
-        : displayedPoints;
-
-    final bool hasUsedPoints = userTotalPoints != safeDisplayedPoints;
+    final int safeDisplayedPoints = commandeProvider.availablePoints;
+    final bool hasUsedPoints = user.points != safeDisplayedPoints;
     final List<Map<String, dynamic>> rewardTiers = _getTiersFromRewards(rewardProvider.rewards);
 
     return Scaffold(
@@ -306,283 +257,178 @@ class _ProfilePageState extends State<ProfilePage> {
       body: Stack(
         children: [
           Positioned(
-            top: 0,
-            right: -80,
-            child: Transform.rotate(
-              angle: 0.2,
-              child: Opacity(
-                opacity: isDark ? 0.05 : 0.1,
-                child: Image.asset('assets/burger1.png', width: 300),
-              ),
-            ),
+            top: 0, right: -80,
+            child: Transform.rotate(angle: 0.2, child: Opacity(opacity: isDark ? 0.05 : 0.1, child: Image.asset('assets/burger1.png', width: 300))),
           ),
 
-          SingleChildScrollView(
-            child: Column(
-              children: [
-                Stack(
-                  clipBehavior: Clip.none,
-                  alignment: Alignment.center,
-                  children: [
-                    Container(
-                      height: 240,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: user.premium ? Colors.black : yellowColor,
-                        borderRadius: const BorderRadius.only(
-                          bottomLeft: Radius.circular(50),
-                          bottomRight: Radius.circular(50),
-                        ),
-                        border: isDark && user.premium ? Border.all(color: Colors.white10) : null,
-                      ),
-                    ),
-                    Positioned(
-                      top: 50,
-                      child: Column(
-                        children: [
-                          Stack(
-                            children: [
-                              Container(
-                                width: 130,
-                                height: 130,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  border: Border.all(color: isDark ? Colors.grey[900]! : Colors.white, width: 6),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.15),
-                                      blurRadius: 25,
-                                      offset: const Offset(0, 10),
-                                    ),
-                                  ],
-                                  image: const DecorationImage(
-                                    image: NetworkImage("https://i.pravatar.cc/300"),
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                              ),
-                              Positioned(
-                                bottom: 0,
-                                right: 0,
-                                child: Container(
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: user.premium ? yellowColor : Colors.white,
-                                    shape: BoxShape.circle,
-                                    border: Border.all(color: isDark ? Colors.grey[900]! : Colors.white, width: 3),
-                                  ),
-                                  child: Icon(
-                                    user.premium ? Icons.star : Icons.lunch_dining,
-                                    size: 20,
-                                    color: Colors.black
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 15),
-
-                          Column(
-                            children: [
-                              Text(
-                                user.pseudo,
-                                style: TextStyle(
-                                  fontSize: 26,
-                                  fontWeight: FontWeight.w900,
-                                  color: user.premium ? Colors.white : Colors.black,
-                                  letterSpacing: -0.5,
-                                ),
-                              ),
-                              const SizedBox(height: 5),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: user.premium ? yellowColor : (isDark ? Colors.white12 : Colors.black12),
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Text(
-                                  user.premium ? "MEMBRE $planName" : "MEMBRE CLASSIQUE",
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
-                                    color: user.premium ? Colors.black : (isDark ? Colors.white70 : Colors.black54),
-                                    letterSpacing: 1
-                                  ),
-                                ),
-                              )
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 60),
-
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Column(
+          RefreshIndicator(
+            onRefresh: _refreshAllData,
+            color: yellowColor,
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Column(
+                children: [
+                  // HEADER
+                  Stack(
+                    clipBehavior: Clip.none,
+                    alignment: Alignment.center,
                     children: [
-                      _buildSubscriptionCard(user, planName, isDark, cardBg),
-                      const SizedBox(height: 25),
-
                       Container(
+                        height: 240,
                         width: double.infinity,
-                        padding: const EdgeInsets.all(25),
                         decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF1E1E1E) : Colors.black,
-                          borderRadius: BorderRadius.circular(24),
-                          border: isDark ? Border.all(color: Colors.white10) : null,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.4),
-                              blurRadius: 20,
-                              offset: const Offset(0, 10),
-                            ),
-                          ],
+                          color: user.premium ? Colors.black : yellowColor,
+                          borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(50), bottomRight: Radius.circular(50)),
                         ),
+                      ),
+                      Positioned(
+                        top: 50,
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              "BURGER CLUB",
-                              style: TextStyle(
-                                color: yellowColor,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 2,
+                            Container(
+                              width: 130, height: 130,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(color: isDark ? Colors.grey[900]! : Colors.white, width: 6),
+                                image: const DecorationImage(image: NetworkImage("https://i.pravatar.cc/300"), fit: BoxFit.cover),
                               ),
                             ),
+                            const SizedBox(height: 15),
+                            Text(user.pseudo, style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: user.premium ? Colors.white : Colors.black)),
                             const SizedBox(height: 5),
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Text(
-                                  "$safeDisplayedPoints pts",
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 34,
-                                    fontWeight: FontWeight.w900,
-                                  ),
-                                ),
-                                if (hasUsedPoints) ...[
-                                  const SizedBox(width: 10),
-                                  Padding(
-                                    padding: const EdgeInsets.only(bottom: 8),
-                                    child: Text(
-                                      "sur ${user.points} pts",
-                                      style: const TextStyle(
-                                        color: Colors.white70,
-                                        fontSize: 14,
-                                        decoration: TextDecoration.lineThrough,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ],
-                            ),
-                            if (hasUsedPoints)
-                              Padding(
-                                padding: const EdgeInsets.only(top: 8),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: yellowColor.withOpacity(0.2),
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(color: yellowColor, width: 1),
-                                  ),
-                                  child: Text(
-                                    "${user.points - safeDisplayedPoints} pts utilisés dans le panier",
-                                    style: TextStyle(
-                                      color: yellowColor,
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            const SizedBox(height: 20),
-                            _buildProgressSection(safeDisplayedPoints, rewardTiers),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                              decoration: BoxDecoration(color: user.premium ? yellowColor : (isDark ? Colors.white12 : Colors.black12), borderRadius: BorderRadius.circular(20)),
+                              child: Text(user.premium ? "MEMBRE $planName" : "MEMBRE CLASSIQUE", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: user.premium ? Colors.black : (isDark ? Colors.white70 : Colors.black54))),
+                            )
                           ],
                         ),
                       ),
-
-                      const SizedBox(height: 30),
-
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          _buildQuickActionCard(
-                            Icons.fastfood,
-                            "Mes\nCommandes",
-                            AppRoutes.history,
-                            cardBg,
-                            isDark,
-                          ),
-                          _buildQuickActionCard(
-                            Icons.favorite_rounded,
-                            "Plats\nFavoris",
-                            AppRoutes.favorite,
-                            cardBg,
-                            isDark,
-                            isMain: true,
-                          ),
-                          _buildQuickActionCard(
-                            Icons.confirmation_number,
-                            "Mes\nCoupons",
-                            '',
-                            cardBg,
-                            isDark,
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 30),
-
-                      Container(
-                        decoration: BoxDecoration(
-                          color: cardBg,
-                          borderRadius: BorderRadius.circular(24),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
-                              blurRadius: 20,
-                              offset: const Offset(0, 5),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          children: [
-                            _buildSettingsTile(Icons.location_on_outlined, "Mes Adresses", AppRoutes.address, isDark),
-                            _buildDivider(dividerColor),
-                            _buildSettingsTile(Icons.support_agent, "Aide & Support", AppRoutes.support, isDark),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 40),
-
-                      TextButton(
-                        onPressed: () async {
-                          await userProvider.logout();
-                          commandeProvider.clearCart();
-                          if (context.mounted) Navigator.pushReplacementNamed(context, AppRoutes.login);
-                        },
-                        child: Text(
-                          "Se déconnecter",
-                          style: TextStyle(
-                            color: Colors.red[400],
-                            fontWeight: FontWeight.w700,
-                            fontSize: 16,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 130),
                     ],
                   ),
-                ),
-              ],
+
+                  const SizedBox(height: 60),
+
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Column(
+                      children: [
+                        _buildSubscriptionCard(user, planName, isDark, cardBg),
+                        const SizedBox(height: 25),
+
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(25),
+                          decoration: BoxDecoration(
+                            color: isDark ? const Color(0xFF1E1E1E) : Colors.black,
+                            borderRadius: BorderRadius.circular(24),
+                            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.4), blurRadius: 20, offset: const Offset(0, 10))],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text("BURGER CLUB", style: TextStyle(color: yellowColor, fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: 2)),
+                              const SizedBox(height: 5),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Text("$safeDisplayedPoints pts", style: const TextStyle(color: Colors.white, fontSize: 34, fontWeight: FontWeight.w900)),
+                                  if (hasUsedPoints) Padding(padding: const EdgeInsets.only(bottom: 8, left: 10), child: Text("sur ${user.points} pts", style: const TextStyle(color: Colors.white70, fontSize: 14, decoration: TextDecoration.lineThrough))),
+                                ],
+                              ),
+                              const SizedBox(height: 20),
+                              _buildProgressSection(safeDisplayedPoints, rewardTiers),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 30),
+
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            _buildQuickActionCard(Icons.fastfood, "Mes\nCommandes", AppRoutes.history, cardBg, isDark),
+                            _buildQuickActionCard(Icons.people_alt_rounded, "Amis &\nCommunauté", AppRoutes.friends, cardBg, isDark, isMain: true),
+                            _buildQuickActionCard(Icons.favorite_rounded, "Plats\nFavoris", AppRoutes.favorite, cardBg, isDark),
+                          ],
+                        ),
+
+                        const SizedBox(height: 30),
+
+                        // PARAMÈTRES
+                        Container(
+                          decoration: BoxDecoration(color: cardBg, borderRadius: BorderRadius.circular(24)),
+                          child: Column(
+                            children: [
+                              _buildSettingsTile(Icons.location_on_outlined, "Mes Adresses", AppRoutes.address, isDark),
+                              _buildDivider(dividerColor),
+                              _buildSettingsTile(Icons.support_agent, "Aide & Support", AppRoutes.support, isDark),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 40),
+
+                        // BOUTONS D'ACTION
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: isDark ? Colors.white.withOpacity(0.03) : Colors.black.withOpacity(0.03),
+                            borderRadius: BorderRadius.circular(24),
+                          ),
+                          child: Column(
+                            children: [
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton.icon(
+                                  onPressed: () async {
+                                    await userProvider.logout();
+                                    commandeProvider.clearCart();
+                                    if (context.mounted) Navigator.pushReplacementNamed(context, AppRoutes.login);
+                                  },
+                                  icon: const Icon(Icons.logout_rounded, size: 20),
+                                  label: const Text("SE DÉCONNECTER", style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1)),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: isDark ? Colors.white10 : Colors.white,
+                                    foregroundColor: isDark ? Colors.white70 : Colors.black87,
+                                    elevation: 0,
+                                    padding: const EdgeInsets.symmetric(vertical: 16),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(15),
+                                      side: BorderSide(color: isDark ? Colors.white10 : Colors.grey.shade200),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 15),
+                              GestureDetector(
+                                onTap: () => _showDeleteAccountDialog(context),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.delete_forever_outlined, size: 18, color: Colors.red[300]),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      "Supprimer définitivement mon compte",
+                                      style: TextStyle(
+                                        color: Colors.red[300],
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 13,
+                                        decoration: TextDecoration.underline,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 130),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -599,9 +445,6 @@ class _ProfilePageState extends State<ProfilePage> {
           color: cardBg,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: yellowColor.withOpacity(0.8), width: 1.5),
-          boxShadow: [
-            BoxShadow(color: yellowColor.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 4))
-          ]
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -624,12 +467,7 @@ class _ProfilePageState extends State<ProfilePage> {
               ],
             ),
             TextButton(
-              onPressed: () {
-                 Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const SubscriptionPage()),
-                );
-              },
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const SubscriptionPage())),
               child: Text("Gérer", style: TextStyle(color: isDark ? yellowColor : Colors.black, fontWeight: FontWeight.bold)),
             )
           ],
@@ -642,9 +480,6 @@ class _ProfilePageState extends State<ProfilePage> {
         decoration: BoxDecoration(
           gradient: const LinearGradient(colors: [Colors.black, Color(0xFF333333)]),
           borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 15, offset: const Offset(0, 5))
-          ]
         ),
         child: Row(
           children: [
@@ -657,24 +492,13 @@ class _ProfilePageState extends State<ProfilePage> {
                   const Text("Livraison offerte & remises", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
                   const SizedBox(height: 10),
                   ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const SubscriptionPage()),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: yellowColor,
-                      foregroundColor: Colors.black,
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                      minimumSize: const Size(0, 35),
-                    ),
+                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const SubscriptionPage())),
+                    style: ElevatedButton.styleFrom(backgroundColor: yellowColor, foregroundColor: Colors.black, minimumSize: const Size(0, 35)),
                     child: const Text("S'abonner", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                   )
                 ],
               ),
             ),
-            const SizedBox(width: 10),
             Icon(Icons.diamond_outlined, color: yellowColor.withOpacity(0.3), size: 70),
           ],
         ),
@@ -684,51 +508,26 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Widget _buildQuickActionCard(IconData icon, String label, String routeString, Color cardBg, bool isDark, {bool isMain = false}) {
     return Container(
-      width: 105,
-      height: 110,
+      width: 105, height: 110,
       decoration: BoxDecoration(
         color: isMain ? yellowColor : cardBg,
         borderRadius: BorderRadius.circular(24),
         border: isDark && !isMain ? Border.all(color: Colors.white10) : null,
-        boxShadow: [
-          BoxShadow(
-            color: isMain ? yellowColor.withOpacity(0.4) : Colors.black.withOpacity(0.05),
-            blurRadius: isMain ? 15 : 10,
-            offset: const Offset(0, 8),
-          ),
-        ],
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(24),
           onTap: () {
-            if (routeString == AppRoutes.favorite) {
-              context.read<NavigationProvider>().setIndex(1);
-            }
-            else if (routeString.isNotEmpty) {
-              Navigator.pushNamed(context, routeString);
-            }
+            if (routeString == AppRoutes.favorite) context.read<NavigationProvider>().setIndex(1);
+            else if (routeString.isNotEmpty) Navigator.pushNamed(context, routeString);
           },
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                icon,
-                color: isMain ? Colors.black : (isDark ? Colors.white : Colors.black),
-                size: 28,
-              ),
+              Icon(icon, color: isMain ? Colors.black : (isDark ? Colors.white : Colors.black), size: 28),
               const SizedBox(height: 12),
-              Text(
-                label,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontWeight: FontWeight.w800,
-                  fontSize: 13,
-                  height: 1.1,
-                  color: isMain ? Colors.black : (isDark ? Colors.white : Colors.black),
-                ),
-              )
+              Text(label, textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13, height: 1.1, color: isMain ? Colors.black : (isDark ? Colors.white : Colors.black))),
             ],
           ),
         ),
@@ -742,24 +541,11 @@ class _ProfilePageState extends State<ProfilePage> {
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
       leading: Container(
         padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: isDark ? Colors.white10 : Colors.grey[100],
-          shape: BoxShape.circle,
-        ),
+        decoration: BoxDecoration(color: isDark ? Colors.white10 : Colors.grey[100], shape: BoxShape.circle),
         child: Icon(icon, color: isDark ? Colors.white70 : Colors.black87, size: 20),
       ),
-      title: Text(
-        title,
-        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
-      ),
-      trailing: Container(
-        padding: const EdgeInsets.all(5),
-        decoration: BoxDecoration(
-          color: isDark ? Colors.white10 : Colors.grey[50],
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Icon(Icons.arrow_forward_ios, size: 12, color: isDark ? Colors.white54 : Colors.black),
-      ),
+      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+      trailing: Icon(Icons.arrow_forward_ios, size: 12, color: isDark ? Colors.white54 : Colors.black),
     );
   }
 

@@ -6,6 +6,7 @@ import 'package:atlas/providers/HistoryProvider.dart';
 import 'package:atlas/providers/NavigationProvider.dart';
 import 'package:atlas/providers/ProductProvider.dart';
 import 'package:atlas/providers/RewardProvider.dart';
+import 'package:atlas/providers/SocialProvider.dart';
 import 'package:atlas/providers/ThemeProvider.dart';
 import 'package:atlas/providers/UserProvider.dart';
 import 'package:atlas/services/NotificationService.dart';
@@ -39,6 +40,7 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => HistoryProvider()),
         ChangeNotifierProvider(create: (_) => RewardProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => SocialProvider()),
       ],
       child: const MyApp(),
     ),
