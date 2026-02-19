@@ -17,7 +17,7 @@ class _HistoryPageState extends State<HistoryPage> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() => 
+    Future.microtask(() =>
       Provider.of<HistoryProvider>(context, listen: false).fetchUserHistory()
     );
   }
@@ -27,8 +27,14 @@ class _HistoryPageState extends State<HistoryPage> {
     final historyProvider = context.watch<HistoryProvider>();
     final orders = historyProvider.orders;
 
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final Color scaffoldBg = Theme.of(context).scaffoldBackgroundColor;
+    final Color cardBg = Theme.of(context).cardColor;
+    final Color textColor = isDark ? Colors.white : Colors.black;
+    final Color subTextColor = isDark ? Colors.white38 : Colors.grey[500]!;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF9F9F9),
+      backgroundColor: scaffoldBg,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -38,24 +44,27 @@ class _HistoryPageState extends State<HistoryPage> {
           child: IconButton(
             icon: Container(
               padding: const EdgeInsets.all(8),
-              decoration: const BoxDecoration(
-                color: Colors.white,
+              decoration: BoxDecoration(
+                color: isDark ? cardBg : Colors.white,
                 shape: BoxShape.circle,
+                boxShadow: [
+                  if (!isDark) BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 5)
+                ]
               ),
-              child: const Icon(Icons.arrow_back, color: Colors.black, size: 20),
+              child: Icon(Icons.arrow_back, color: textColor, size: 20),
             ),
             onPressed: () => Navigator.pop(context),
           ),
         ),
         title: Text(
           "Mes Commandes",
-          style: GoogleFonts.lilitaOne(color: Colors.black, fontSize: 24),
+          style: GoogleFonts.lilitaOne(color: textColor, fontSize: 24),
         ),
       ),
       body: historyProvider.isLoading
-          ? const Center(child: CircularProgressIndicator(color: Colors.black))
+          ? Center(child: CircularProgressIndicator(color: isDark ? yellowColor : Colors.black))
           : orders.isEmpty
-              ? _buildEmptyState()
+              ? _buildEmptyState(isDark, textColor)
               : ListView.separated(
                   padding: const EdgeInsets.all(20),
                   itemCount: orders.length,
@@ -74,11 +83,12 @@ class _HistoryPageState extends State<HistoryPage> {
                       child: Container(
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: cardBg,
                           borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: isDark ? Colors.white10 : Colors.transparent),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
+                              color: Colors.black.withOpacity(isDark ? 0.2 : 0.05),
                               blurRadius: 15,
                               offset: const Offset(0, 5),
                             )
@@ -92,7 +102,7 @@ class _HistoryPageState extends State<HistoryPage> {
                                 Container(
                                   padding: const EdgeInsets.all(12),
                                   decoration: BoxDecoration(
-                                    color: yellowColor.withOpacity(0.2),
+                                    color: yellowColor.withOpacity(isDark ? 0.1 : 0.2),
                                     shape: BoxShape.circle,
                                   ),
                                   child: Icon(Icons.receipt, color: yellowColor, size: 24),
@@ -103,18 +113,22 @@ class _HistoryPageState extends State<HistoryPage> {
                                   children: [
                                     Text(
                                       "${order.date.day}/${order.date.month}/${order.date.year}",
-                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                        color: textColor
+                                      ),
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
                                       "${order.total.toStringAsFixed(2)}€ • ${order.items.length} articles",
-                                      style: TextStyle(color: Colors.grey[500], fontSize: 13),
+                                      style: TextStyle(color: subTextColor, fontSize: 13),
                                     ),
                                   ],
                                 ),
                               ],
                             ),
-                            Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey[400]),
+                            Icon(Icons.arrow_forward_ios, size: 16, color: isDark ? Colors.white24 : Colors.grey[400]),
                           ],
                         ),
                       ),
@@ -124,7 +138,7 @@ class _HistoryPageState extends State<HistoryPage> {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(bool isDark, Color textColor) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -140,13 +154,13 @@ class _HistoryPageState extends State<HistoryPage> {
           const SizedBox(height: 20),
           Text(
             "Aucune commande",
-            style: GoogleFonts.lilitaOne(fontSize: 22, color: Colors.black),
+            style: GoogleFonts.lilitaOne(fontSize: 22, color: textColor),
           ),
           const SizedBox(height: 10),
-          const Text(
+          Text(
             "Vos futures aventures culinaires\napparaitront ici.",
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.grey, fontSize: 14),
+            style: TextStyle(color: isDark ? Colors.white38 : Colors.grey, fontSize: 14),
           ),
         ],
       ),

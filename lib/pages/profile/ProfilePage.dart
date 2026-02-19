@@ -5,6 +5,7 @@ import 'package:atlas/providers/CommandeProvider.dart';
 import 'package:atlas/providers/NavigationProvider.dart';
 import 'package:atlas/providers/RewardProvider.dart';
 import 'package:atlas/providers/UserProvider.dart';
+import 'package:atlas/providers/ThemeProvider.dart';
 import 'package:atlas/widgets/appbar/customAppbar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -18,7 +19,6 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   final Color yellowColor = const Color.fromARGB(255, 242, 202, 80);
-  final Color scaffoldColor = const Color(0xFFF9F9F9);
 
   @override
   void initState() {
@@ -52,7 +52,6 @@ class _ProfilePageState extends State<ProfilePage> {
 
   // Génère la liste des paliers à partir des rewards
   List<Map<String, dynamic>> _getTiersFromRewards(List<RewardModel> rewards) {
-    // Grouper les rewards par coût et créer les paliers
     final Map<int, String> tiers = {};
 
     for (var reward in rewards) {
@@ -61,7 +60,6 @@ class _ProfilePageState extends State<ProfilePage> {
       }
     }
 
-    // Convertir en liste triée
     final List<Map<String, dynamic>> tiersList = [];
     final sortedCosts = tiers.keys.toList()..sort();
 
@@ -75,7 +73,6 @@ class _ProfilePageState extends State<ProfilePage> {
     return tiersList;
   }
 
-  // Même logique que dans RewardPage
   String _getTierName(int cost) {
     if (cost <= 50) return "L'Explorateur";
     if (cost <= 150) return "Le Gourmand";
@@ -84,17 +81,15 @@ class _ProfilePageState extends State<ProfilePage> {
     return "L'Empereur";
   }
 
-  // Trouve le prochain palier
   Map<String, dynamic>? _getNextTier(int currentPoints, List<Map<String, dynamic>> tiers) {
     for (var tier in tiers) {
       if (currentPoints < tier['points']) {
         return tier;
       }
     }
-    return null; // Tous les paliers atteints
+    return null;
   }
 
-  // Trouve le dernier palier atteint
   Map<String, dynamic>? _getLastReachedTier(int currentPoints, List<Map<String, dynamic>> tiers) {
     Map<String, dynamic>? lastTier;
     for (var tier in tiers) {
@@ -107,13 +102,12 @@ class _ProfilePageState extends State<ProfilePage> {
     return lastTier;
   }
 
-  // Calcule la progression vers le prochain palier
   double _getProgressToNextTier(int currentPoints, List<Map<String, dynamic>> tiers) {
     final lastTier = _getLastReachedTier(currentPoints, tiers);
     final nextTier = _getNextTier(currentPoints, tiers);
 
     if (nextTier == null) {
-      return 1.0; // Tous les paliers atteints
+      return 1.0;
     }
 
     final int startPoints = lastTier?['points'] ?? 0;
@@ -140,7 +134,6 @@ class _ProfilePageState extends State<ProfilePage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Texte du dernier palier atteint
         if (lastReachedTier != null)
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
@@ -160,7 +153,6 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
           ),
 
-        // Message si tous les paliers sont atteints
         if (allTiersReached)
           Container(
             padding: const EdgeInsets.all(12),
@@ -190,7 +182,6 @@ class _ProfilePageState extends State<ProfilePage> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Texte du prochain palier
               Text(
                 "Prochain palier : ${nextTier!['name']}",
                 style: const TextStyle(color: Colors.white70, fontSize: 13),
@@ -205,10 +196,8 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
               ),
               const SizedBox(height: 10),
-              // Barre de progression
               Stack(
                 children: [
-                  // Fond de la barre
                   Container(
                     height: 12,
                     decoration: BoxDecoration(
@@ -216,7 +205,6 @@ class _ProfilePageState extends State<ProfilePage> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  // Progression
                   FractionallySizedBox(
                     widthFactor: progress.clamp(0.0, 1.0),
                     child: Container(
@@ -236,7 +224,6 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                     ),
                   ),
-                  // Indicateur de progression en %
                   if (progress > 0.15)
                     Positioned.fill(
                       child: Align(
@@ -257,7 +244,6 @@ class _ProfilePageState extends State<ProfilePage> {
                 ],
               ),
               const SizedBox(height: 8),
-              // Points de début et de fin
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -289,20 +275,24 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     final userProvider = context.watch<UserProvider>();
     final commandeProvider = context.watch<Commandeprovider>();
-    final rewardProvider = context.watch<RewardProvider>(); // AJOUTÉ
+    final rewardProvider = context.watch<RewardProvider>();
+    final themeProvider = context.watch<ThemeProvider>();
     final user = userProvider.user;
+
+    // --- LOGIQUE DE THÈME DYNAMIQUE ---
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final Color scaffoldBg = Theme.of(context).scaffoldBackgroundColor;
+    final Color cardBg = Theme.of(context).cardColor;
+    final Color dividerColor = Theme.of(context).dividerColor;
+    final Color textColor = Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black;
 
     if (user == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator(color: Colors.black)));
     }
 
     final String planName = _getPlanName(user.planId);
-
-    // PROTECTION: S'assurer que commandeProvider a les bonnes infos
     final int userTotalPoints = user.points;
     final int displayedPoints = commandeProvider.availablePoints;
-
-    // Si displayedPoints est négatif ou supérieur aux points totaux, utiliser les points de l'user
     final int safeDisplayedPoints = (displayedPoints < 0 || displayedPoints > userTotalPoints)
         ? userTotalPoints
         : displayedPoints;
@@ -311,7 +301,7 @@ class _ProfilePageState extends State<ProfilePage> {
     final List<Map<String, dynamic>> rewardTiers = _getTiersFromRewards(rewardProvider.rewards);
 
     return Scaffold(
-      backgroundColor: scaffoldColor,
+      backgroundColor: scaffoldBg,
       appBar: const CustomAppBar(),
       body: Stack(
         children: [
@@ -321,7 +311,7 @@ class _ProfilePageState extends State<ProfilePage> {
             child: Transform.rotate(
               angle: 0.2,
               child: Opacity(
-                opacity: 0.1,
+                opacity: isDark ? 0.05 : 0.1,
                 child: Image.asset('assets/burger1.png', width: 300),
               ),
             ),
@@ -343,6 +333,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           bottomLeft: Radius.circular(50),
                           bottomRight: Radius.circular(50),
                         ),
+                        border: isDark && user.premium ? Border.all(color: Colors.white10) : null,
                       ),
                     ),
                     Positioned(
@@ -356,7 +347,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                 height: 130,
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
-                                  border: Border.all(color: Colors.white, width: 6),
+                                  border: Border.all(color: isDark ? Colors.grey[900]! : Colors.white, width: 6),
                                   boxShadow: [
                                     BoxShadow(
                                       color: Colors.black.withOpacity(0.15),
@@ -378,7 +369,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                   decoration: BoxDecoration(
                                     color: user.premium ? yellowColor : Colors.white,
                                     shape: BoxShape.circle,
-                                    border: Border.all(color: Colors.white, width: 3),
+                                    border: Border.all(color: isDark ? Colors.grey[900]! : Colors.white, width: 3),
                                   ),
                                   child: Icon(
                                     user.premium ? Icons.star : Icons.lunch_dining,
@@ -406,7 +397,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color: user.premium ? yellowColor : Colors.black12,
+                                  color: user.premium ? yellowColor : (isDark ? Colors.white12 : Colors.black12),
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: Text(
@@ -414,7 +405,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                   style: TextStyle(
                                     fontSize: 10,
                                     fontWeight: FontWeight.bold,
-                                    color: user.premium ? Colors.black : Colors.black54,
+                                    color: user.premium ? Colors.black : (isDark ? Colors.white70 : Colors.black54),
                                     letterSpacing: 1
                                   ),
                                 ),
@@ -433,15 +424,16 @@ class _ProfilePageState extends State<ProfilePage> {
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Column(
                     children: [
-                      _buildSubscriptionCard(user, planName),
+                      _buildSubscriptionCard(user, planName, isDark, cardBg),
                       const SizedBox(height: 25),
 
                       Container(
                         width: double.infinity,
                         padding: const EdgeInsets.all(25),
                         decoration: BoxDecoration(
-                          color: Colors.black,
+                          color: isDark ? const Color(0xFF1E1E1E) : Colors.black,
                           borderRadius: BorderRadius.circular(24),
+                          border: isDark ? Border.all(color: Colors.white10) : null,
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withOpacity(0.4),
@@ -525,17 +517,23 @@ class _ProfilePageState extends State<ProfilePage> {
                             Icons.fastfood,
                             "Mes\nCommandes",
                             AppRoutes.history,
+                            cardBg,
+                            isDark,
                           ),
                           _buildQuickActionCard(
                             Icons.favorite_rounded,
                             "Plats\nFavoris",
                             AppRoutes.favorite,
+                            cardBg,
+                            isDark,
                             isMain: true,
                           ),
                           _buildQuickActionCard(
                             Icons.confirmation_number,
                             "Mes\nCoupons",
-                            ''
+                            '',
+                            cardBg,
+                            isDark,
                           ),
                         ],
                       ),
@@ -544,11 +542,11 @@ class _ProfilePageState extends State<ProfilePage> {
 
                       Container(
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: cardBg,
                           borderRadius: BorderRadius.circular(24),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.grey.withOpacity(0.08),
+                              color: Colors.black.withOpacity(0.05),
                               blurRadius: 20,
                               offset: const Offset(0, 5),
                             ),
@@ -556,11 +554,9 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                         child: Column(
                           children: [
-                            _buildSettingsTile(Icons.location_on_outlined, "Mes Adresses", AppRoutes.address),
-                            _buildDivider(),
-                            _buildSettingsTile(Icons.payment_outlined, "Moyens de paiement", '/payment'),
-                            _buildDivider(),
-                            _buildSettingsTile(Icons.support_agent, "Aide & Support", AppRoutes.support),
+                            _buildSettingsTile(Icons.location_on_outlined, "Mes Adresses", AppRoutes.address, isDark),
+                            _buildDivider(dividerColor),
+                            _buildSettingsTile(Icons.support_agent, "Aide & Support", AppRoutes.support, isDark),
                           ],
                         ),
                       ),
@@ -594,13 +590,13 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildSubscriptionCard(dynamic user, String planName) {
+  Widget _buildSubscriptionCard(dynamic user, String planName, bool isDark, Color cardBg) {
     if (user.premium) {
       return Container(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: cardBg,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: yellowColor.withOpacity(0.8), width: 1.5),
           boxShadow: [
@@ -634,7 +630,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   MaterialPageRoute(builder: (context) => const SubscriptionPage()),
                 );
               },
-              child: const Text("Gérer", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+              child: Text("Gérer", style: TextStyle(color: isDark ? yellowColor : Colors.black, fontWeight: FontWeight.bold)),
             )
           ],
         ),
@@ -686,16 +682,17 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  Widget _buildQuickActionCard(IconData icon, String label, String routeString, {bool isMain = false}) {
+  Widget _buildQuickActionCard(IconData icon, String label, String routeString, Color cardBg, bool isDark, {bool isMain = false}) {
     return Container(
       width: 105,
       height: 110,
       decoration: BoxDecoration(
-        color: isMain ? yellowColor : Colors.white,
+        color: isMain ? yellowColor : cardBg,
         borderRadius: BorderRadius.circular(24),
+        border: isDark && !isMain ? Border.all(color: Colors.white10) : null,
         boxShadow: [
           BoxShadow(
-            color: isMain ? yellowColor.withOpacity(0.4) : Colors.grey.withOpacity(0.05),
+            color: isMain ? yellowColor.withOpacity(0.4) : Colors.black.withOpacity(0.05),
             blurRadius: isMain ? 15 : 10,
             offset: const Offset(0, 8),
           ),
@@ -718,17 +715,18 @@ class _ProfilePageState extends State<ProfilePage> {
             children: [
               Icon(
                 icon,
-                color: Colors.black,
+                color: isMain ? Colors.black : (isDark ? Colors.white : Colors.black),
                 size: 28,
               ),
               const SizedBox(height: 12),
               Text(
                 label,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                   fontWeight: FontWeight.w800,
                   fontSize: 13,
                   height: 1.1,
+                  color: isMain ? Colors.black : (isDark ? Colors.white : Colors.black),
                 ),
               )
             ],
@@ -738,17 +736,17 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildSettingsTile(IconData icon, String title, String route) {
+  Widget _buildSettingsTile(IconData icon, String title, String route, bool isDark) {
     return ListTile(
       onTap: () => Navigator.pushNamed(context, route),
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: Colors.grey[100],
+          color: isDark ? Colors.white10 : Colors.grey[100],
           shape: BoxShape.circle,
         ),
-        child: Icon(icon, color: Colors.black87, size: 20),
+        child: Icon(icon, color: isDark ? Colors.white70 : Colors.black87, size: 20),
       ),
       title: Text(
         title,
@@ -757,15 +755,15 @@ class _ProfilePageState extends State<ProfilePage> {
       trailing: Container(
         padding: const EdgeInsets.all(5),
         decoration: BoxDecoration(
-          color: Colors.grey[50],
+          color: isDark ? Colors.white10 : Colors.grey[50],
           borderRadius: BorderRadius.circular(8),
         ),
-        child: const Icon(Icons.arrow_forward_ios, size: 12, color: Colors.black),
+        child: Icon(Icons.arrow_forward_ios, size: 12, color: isDark ? Colors.white54 : Colors.black),
       ),
     );
   }
 
-  Widget _buildDivider() {
-    return Divider(height: 1, thickness: 1, color: Colors.grey[100], indent: 70, endIndent: 20);
+  Widget _buildDivider(Color color) {
+    return Divider(height: 1, thickness: 1, color: color, indent: 70, endIndent: 20);
   }
 }

@@ -12,8 +12,13 @@ class DetailsHistoryPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final Color yellowColor = const Color.fromARGB(255, 242, 202, 80);
 
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final Color cardBg = Theme.of(context).cardColor;
+    final Color textColor = isDark ? Colors.white : Colors.black;
+    final Color subTextColor = isDark ? Colors.white70 : Colors.grey[600]!;
+
     return Scaffold(
-      backgroundColor: yellowColor, 
+      backgroundColor: yellowColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -21,14 +26,14 @@ class DetailsHistoryPage extends StatelessWidget {
         leading: Container(
           margin: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 5)
             ]
           ),
           child: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.black, size: 20),
+            icon: Icon(Icons.arrow_back, color: isDark ? yellowColor : Colors.black, size: 20),
             onPressed: () => Navigator.pop(context),
           ),
         ),
@@ -39,7 +44,6 @@ class DetailsHistoryPage extends StatelessWidget {
       ),
       body: Column(
         children: [
-          // EN-TÊTE (Montant + Statut)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 20),
             child: Column(
@@ -86,40 +90,44 @@ class DetailsHistoryPage extends StatelessWidget {
             ),
           ),
 
-          // LISTE DES ARTICLES (Carte blanche)
           Expanded(
             child: Container(
               width: double.infinity,
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(35)),
+              decoration: BoxDecoration(
+                color: cardBg,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(35)),
+                boxShadow: [
+                  if (isDark)
+                    BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, -5))
+                ]
               ),
               child: ClipRRect(
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(35)),
                 child: Column(
                   children: [
-                    // Barre de tiret décorative
                     Center(
                       child: Container(
                         margin: const EdgeInsets.only(top: 15),
                         width: 50, height: 5,
                         decoration: BoxDecoration(
-                          color: Colors.grey[200],
+                          color: isDark ? Colors.white12 : Colors.grey[200],
                           borderRadius: BorderRadius.circular(10)
                         ),
                       ),
                     ),
-                    
-                    // Titre section
+
                     Padding(
                       padding: const EdgeInsets.fromLTRB(25, 25, 25, 10),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text("Votre commande", style: GoogleFonts.lilitaOne(fontSize: 20)),
+                          Text(
+                            "Votre commande",
+                            style: GoogleFonts.lilitaOne(fontSize: 20, color: textColor)
+                          ),
                           Text(
                             "${order.date.day}/${order.date.month}/${order.date.year}",
-                            style: TextStyle(color: Colors.grey[500], fontWeight: FontWeight.bold),
+                            style: TextStyle(color: subTextColor, fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
@@ -129,59 +137,72 @@ class DetailsHistoryPage extends StatelessWidget {
                       child: ListView.separated(
                         padding: const EdgeInsets.all(25),
                         itemCount: order.items.length,
-                        separatorBuilder: (ctx, i) => Divider(height: 30, color: Colors.grey[100]),
+                        separatorBuilder: (ctx, i) => Divider(height: 30, color: isDark ? Colors.white10 : Colors.grey[100]),
                         itemBuilder: (context, index) {
                           final item = order.items[index];
+                          final String details = item['details'] ?? "";
+                          final bool isMenu = item['name'].toString().startsWith("Menu");
+
                           return Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // Image produit
                               Container(
                                 width: 60, height: 60,
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFF9F9F9),
+                                  color: isDark ? Colors.white.withOpacity(0.05) : const Color(0xFFF9F9F9),
                                   borderRadius: BorderRadius.circular(15),
                                 ),
                                 child: Padding(
                                   padding: const EdgeInsets.all(8.0),
                                   child: Image.asset(
-                                    'assets/${item['img_url'] ?? "pizza1.png"}', 
+                                    'assets/${item['img_url'] ?? "pizza1.png"}',
                                     fit: BoxFit.contain,
                                     errorBuilder: (ctx, err, stack) => Image.asset('assets/pizza1.png'),
                                   ),
                                 ),
                               ),
                               const SizedBox(width: 15),
-                              
-                              // Infos
+
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
                                       item['name'],
-                                      style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+                                      style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: textColor),
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
                                       "Qté: ${item['quantity']}",
-                                      style: TextStyle(color: Colors.grey[500], fontWeight: FontWeight.w600),
+                                      style: TextStyle(color: subTextColor, fontWeight: FontWeight.w600),
                                     ),
+                                    if (isMenu && details.isNotEmpty)
+                                      Padding(
+                                        padding: const EdgeInsets.only(top: 6),
+                                        child: Text(
+                                          details,
+                                          style: TextStyle(
+                                            color: isDark ? Colors.white60 : Colors.grey[700],
+                                            fontSize: 12,
+                                            height: 1.4
+                                          ),
+                                        ),
+                                      ),
                                   ],
                                 ),
                               ),
-                              
-                              // Prix
+
                               Text(
                                 "${(item['price'] * item['quantity']).toStringAsFixed(2)}€",
-                                style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+                                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: textColor),
                               ),
                             ],
                           );
                         },
                       ),
                     ),
-                    
-                    // BOUTON TICKET
+
+                    // BOUTON TICKET (Adaptatif)
                     Padding(
                       padding: const EdgeInsets.fromLTRB(25, 0, 25, 30),
                       child: SizedBox(
@@ -196,10 +217,17 @@ class DetailsHistoryPage extends StatelessWidget {
                               ),
                             );
                           },
-                          icon: const Icon(Icons.receipt_long, color: Colors.black),
-                          label: const Text("VOIR LE TICKET DE CAISSE", style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900, letterSpacing: 1)),
+                          icon: Icon(Icons.receipt_long, color: isDark ? yellowColor : Colors.black),
+                          label: Text(
+                            "VOIR LE TICKET DE CAISSE",
+                            style: TextStyle(
+                              color: isDark ? yellowColor : Colors.black,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 1
+                            )
+                          ),
                           style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: Colors.black, width: 2),
+                            side: BorderSide(color: isDark ? yellowColor : Colors.black, width: 2),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                           ),
                         ),
@@ -215,15 +243,6 @@ class DetailsHistoryPage extends StatelessWidget {
     );
   }
 
-  Color _getStatusColor(String status) {
-    switch (status) {
-      case 'En préparation': return Colors.orange;
-      case 'Livrée': return Colors.green;
-      case 'Annulée': return Colors.red;
-      default: return Colors.blue;
-    }
-  }
-  
   Widget _getStatusIcon(String status) {
     IconData icon;
     switch (status) {

@@ -1,5 +1,5 @@
 import 'package:atlas/models/ProductModel.dart';
-import 'package:atlas/providers/ProductProvider.dart'; 
+import 'package:atlas/providers/ProductProvider.dart';
 import 'package:atlas/services/UserService.dart';
 import 'package:atlas/widgets/login/Toast.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -21,27 +21,29 @@ class _ReviewsPageState extends State<ReviewsPage> {
   @override
   Widget build(BuildContext context) {
     final product = ModalRoute.of(context)!.settings.arguments as ProductModel;
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final Color textColor = isDark ? Colors.white : Colors.black;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back, color: textColor),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           "Avis Clients",
-          style: GoogleFonts.lilitaOne(color: Colors.black, fontSize: 22),
+          style: GoogleFonts.lilitaOne(color: textColor, fontSize: 22),
         ),
         centerTitle: true,
       ),
       body: Column(
         children: [
-          _buildHeaderStats(product),
-          
-          const Divider(height: 1, color: Color(0xFFEEEEEE)),
+          _buildHeaderStats(product, isDark, textColor),
+
+          Divider(height: 1, color: isDark ? Colors.white10 : const Color(0xFFEEEEEE)),
 
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
@@ -52,8 +54,8 @@ class _ReviewsPageState extends State<ReviewsPage> {
                   .orderBy('createdAt', descending: true)
                   .snapshots(),
               builder: (context, snapshot) {
-                if (snapshot.hasError) return const Center(child: Text("Oups, une erreur est survenue."));
-                if (!snapshot.hasData) return const Center(child: CircularProgressIndicator(color: Colors.black));
+                if (snapshot.hasError) return Center(child: Text("Oups, une erreur est survenue.", style: TextStyle(color: textColor)));
+                if (!snapshot.hasData) return Center(child: CircularProgressIndicator(color: isDark ? yellowColor : Colors.black));
 
                 final reviews = snapshot.data!.docs;
 
@@ -62,12 +64,12 @@ class _ReviewsPageState extends State<ReviewsPage> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.comment_outlined, size: 60, color: Colors.grey[300]),
+                        Icon(Icons.comment_outlined, size: 60, color: isDark ? Colors.white10 : Colors.grey[300]),
                         const SizedBox(height: 15),
                         Text(
                           "Aucun avis pour le moment.\nSoyez le premier !",
                           textAlign: TextAlign.center,
-                          style: TextStyle(color: Colors.grey[500], fontSize: 16),
+                          style: TextStyle(color: isDark ? Colors.white38 : Colors.grey[500], fontSize: 16),
                         ),
                       ],
                     ),
@@ -80,7 +82,7 @@ class _ReviewsPageState extends State<ReviewsPage> {
                   separatorBuilder: (ctx, i) => const SizedBox(height: 20),
                   itemBuilder: (context, index) {
                     final data = reviews[index].data() as Map<String, dynamic>;
-                    return _buildReviewTile(data);
+                    return _buildReviewTile(data, isDark, textColor);
                   },
                 );
               },
@@ -89,15 +91,15 @@ class _ReviewsPageState extends State<ReviewsPage> {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showReviewModal(context, product),
-        backgroundColor: Colors.black,
-        icon: const Icon(Icons.edit, color: Colors.white),
-        label: const Text("Écrire un avis", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        onPressed: () => _showReviewModal(context, product, isDark),
+        backgroundColor: isDark ? yellowColor : Colors.black,
+        icon: Icon(Icons.edit, color: isDark ? Colors.black : Colors.white),
+        label: Text("Écrire un avis", style: TextStyle(color: isDark ? Colors.black : Colors.white, fontWeight: FontWeight.bold)),
       ),
     );
   }
 
-  Widget _buildHeaderStats(ProductModel product) {
+  Widget _buildHeaderStats(ProductModel product, bool isDark, Color textColor) {
     return StreamBuilder<DocumentSnapshot>(
       stream: FirebaseFirestore.instance.collection('products').doc(product.id).snapshots(),
       builder: (context, snapshot) {
@@ -112,14 +114,14 @@ class _ReviewsPageState extends State<ReviewsPage> {
 
         return Container(
           padding: const EdgeInsets.all(25),
-          color: const Color(0xFFFAFAFA),
+          color: isDark ? Colors.white.withOpacity(0.03) : const Color(0xFFFAFAFA),
           child: Row(
             children: [
               Column(
                 children: [
                   Text(
                     average.toStringAsFixed(1),
-                    style: GoogleFonts.lilitaOne(fontSize: 48, color: Colors.black, height: 1),
+                    style: GoogleFonts.lilitaOne(fontSize: 48, color: textColor, height: 1),
                   ),
                   Row(
                     children: List.generate(5, (i) => Icon(
@@ -129,7 +131,7 @@ class _ReviewsPageState extends State<ReviewsPage> {
                     )),
                   ),
                   const SizedBox(height: 5),
-                  Text("$count avis", style: TextStyle(color: Colors.grey[600], fontSize: 13, fontWeight: FontWeight.w600)),
+                  Text("$count avis", style: TextStyle(color: isDark ? Colors.white54 : Colors.grey[600], fontSize: 13, fontWeight: FontWeight.w600)),
                 ],
               ),
               const SizedBox(width: 25),
@@ -137,11 +139,11 @@ class _ReviewsPageState extends State<ReviewsPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text("L'avis des explorateurs", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    Text("L'avis des explorateurs", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: textColor)),
                     const SizedBox(height: 5),
                     Text(
                       "Découvrez ce que les autres voyageurs pensent de ce plat.",
-                      style: TextStyle(color: Colors.grey[600], fontSize: 13, height: 1.4),
+                      style: TextStyle(color: isDark ? Colors.white38 : Colors.grey[600], fontSize: 13, height: 1.4),
                     ),
                   ],
                 ),
@@ -153,12 +155,12 @@ class _ReviewsPageState extends State<ReviewsPage> {
     );
   }
 
-  Widget _buildReviewTile(Map<String, dynamic> data) {
-    final int rating = data['rating'] ?? 0;
+  Widget _buildReviewTile(Map<String, dynamic> data, bool isDark, Color textColor) {
+    final int rating = (data['rating'] ?? 0).toInt();
     final String comment = data['comment'] ?? "";
     final Timestamp? createdAt = data['createdAt'];
     final String userName = data['userName'] ?? "Explorateur Atlas";
-    
+
     String dateStr = "";
     if (createdAt != null) {
       final date = createdAt.toDate();
@@ -168,12 +170,12 @@ class _ReviewsPageState extends State<ReviewsPage> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.shade100),
+        border: Border.all(color: isDark ? Colors.white10 : Colors.grey.shade100),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withOpacity(isDark ? 0.2 : 0.04),
             blurRadius: 15,
             offset: const Offset(0, 5),
           )
@@ -190,14 +192,14 @@ class _ReviewsPageState extends State<ReviewsPage> {
                   Container(
                     width: 40,
                     height: 40,
-                    decoration: const BoxDecoration(
-                      color: Colors.black,
+                    decoration: BoxDecoration(
+                      color: isDark ? yellowColor : Colors.black,
                       shape: BoxShape.circle,
                     ),
                     child: Center(
                       child: Text(
                         userName.isNotEmpty ? userName[0].toUpperCase() : "A",
-                        style: GoogleFonts.lilitaOne(color: yellowColor, fontSize: 18),
+                        style: GoogleFonts.lilitaOne(color: isDark ? Colors.black : yellowColor, fontSize: 18),
                       ),
                     ),
                   ),
@@ -205,7 +207,7 @@ class _ReviewsPageState extends State<ReviewsPage> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(userName, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
+                      Text(userName, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: textColor)),
                       const SizedBox(height: 2),
                       Row(
                         children: List.generate(5, (i) => Icon(
@@ -218,17 +220,17 @@ class _ReviewsPageState extends State<ReviewsPage> {
                   ),
                 ],
               ),
-              Text(dateStr, style: TextStyle(color: Colors.grey[400], fontSize: 12)),
+              Text(dateStr, style: TextStyle(color: isDark ? Colors.white24 : Colors.grey[400], fontSize: 12)),
             ],
           ),
           if (comment.isNotEmpty) ...[
             const SizedBox(height: 12),
             Text(
-              comment, 
-              style: const TextStyle(
-                fontSize: 14, 
-                height: 1.5, 
-                color: Colors.black87
+              comment,
+              style: TextStyle(
+                fontSize: 14,
+                height: 1.5,
+                color: isDark ? Colors.white70 : Colors.black87
               )
             ),
           ]
@@ -237,29 +239,29 @@ class _ReviewsPageState extends State<ReviewsPage> {
     );
   }
 
-  void _showReviewModal(BuildContext context, ProductModel product) {
+  void _showReviewModal(BuildContext context, ProductModel product, bool isDark) {
     showModalBottomSheet(
       context: context,
-      isScrollControlled: true, 
+      isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) {
-        int selectedStars = 5; 
+        int selectedStars = 5;
         final TextEditingController commentController = TextEditingController();
         bool isSending = false;
 
-        return StatefulBuilder( 
+        return StatefulBuilder(
           builder: (context, setModalState) {
             return Container(
               height: MediaQuery.of(context).size.height * 0.6,
               padding: EdgeInsets.only(
-                top: 25, 
-                left: 20, 
+                top: 25,
+                left: 20,
                 right: 20,
                 bottom: MediaQuery.of(context).viewInsets.bottom + 20
               ),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -268,11 +270,14 @@ class _ReviewsPageState extends State<ReviewsPage> {
                   Center(
                     child: Container(
                       width: 50, height: 5,
-                      decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10)),
+                      decoration: BoxDecoration(color: isDark ? Colors.white10 : Colors.grey[300], borderRadius: BorderRadius.circular(10)),
                     ),
                   ),
                   const SizedBox(height: 20),
-                  Text("Noter ${product.name}", style: GoogleFonts.lilitaOne(fontSize: 24)),
+                  Text(
+                    "Noter ${product.name}",
+                    style: GoogleFonts.lilitaOne(fontSize: 24, color: isDark ? Colors.white : Colors.black)
+                  ),
                   const SizedBox(height: 15),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -295,10 +300,12 @@ class _ReviewsPageState extends State<ReviewsPage> {
                   TextField(
                     controller: commentController,
                     maxLines: 4,
+                    style: TextStyle(color: isDark ? Colors.white : Colors.black),
                     decoration: InputDecoration(
                       hintText: "Racontez-nous votre expérience culinaire...",
+                      hintStyle: TextStyle(color: isDark ? Colors.white38 : Colors.grey),
                       filled: true,
-                      fillColor: const Color(0xFFF9F9F9),
+                      fillColor: isDark ? Colors.white.withOpacity(0.05) : const Color(0xFFF9F9F9),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(15),
                         borderSide: BorderSide.none,
@@ -313,12 +320,9 @@ class _ReviewsPageState extends State<ReviewsPage> {
                         setModalState(() => isSending = true);
                         try {
                           await _userService.submitReview(product.id, selectedStars, commentController.text);
-                          
-                          // --- MISE À JOUR DU PROVIDER ---
+
                           if (context.mounted) {
-                            // On demande au provider de rafraîchir ce produit spécifique
                             Provider.of<ProductProvider>(context, listen: false).updateSingleProduct(product.id);
-                            
                             Navigator.pop(context);
                             Toast.show(context, "Merci pour votre avis ! ⭐");
                           }
@@ -330,13 +334,13 @@ class _ReviewsPageState extends State<ReviewsPage> {
                         }
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black,
-                        foregroundColor: Colors.white,
+                        backgroundColor: isDark ? yellowColor : Colors.black,
+                        foregroundColor: isDark ? Colors.black : Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                       ),
-                      child: isSending 
-                        ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                      child: isSending
+                        ? SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: isDark ? Colors.black : Colors.white, strokeWidth: 2))
                         : const Text("Envoyer mon avis", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                     ),
                   ),

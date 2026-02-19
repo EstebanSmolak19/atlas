@@ -29,14 +29,20 @@ class _CommandePageState extends State<CommandePage> {
     final user = context.watch<UserProvider>().user;
     final bool isPremium = user?.premium ?? false;
 
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final Color scaffoldBg = Theme.of(context).scaffoldBackgroundColor;
+    final Color cardBg = Theme.of(context).cardColor;
+    final Color textColor = isDark ? Colors.white : Colors.black;
+    final Color subTextColor = isDark ? Colors.white70 : Colors.grey[600]!;
+
     final double finalAmount = cartProvider.total;
     final double originalPrice = cartProvider.subTotal + 2.55;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF9F9F9),
+      backgroundColor: scaffoldBg,
       appBar: const ProductAppbar(title: "Panier"),
       body: cartItems.isEmpty
-          ? const Center(child: Text("Votre panier est vide 🛒"))
+          ? Center(child: Text("Votre panier est vide 🛒", style: TextStyle(color: textColor, fontSize: 16)))
           : Column(
               children: [
                 // Affichage des points disponibles si des récompenses sont dans le panier
@@ -46,12 +52,14 @@ class _CommandePageState extends State<CommandePage> {
                     padding: const EdgeInsets.all(15),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [yellowColor.withOpacity(0.2), yellowColor.withOpacity(0.1)],
+                        colors: isDark
+                          ? [yellowColor.withOpacity(0.15), yellowColor.withOpacity(0.05)]
+                          : [yellowColor.withOpacity(0.2), yellowColor.withOpacity(0.1)],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
                       borderRadius: BorderRadius.circular(15),
-                      border: Border.all(color: yellowColor, width: 1.5),
+                      border: Border.all(color: yellowColor.withOpacity(0.5), width: 1.5),
                     ),
                     child: Row(
                       children: [
@@ -68,11 +76,12 @@ class _CommandePageState extends State<CommandePage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
+                              Text(
                                 "Points de fidélité",
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 13,
+                                  color: textColor,
                                 ),
                               ),
                               const SizedBox(height: 2),
@@ -80,7 +89,7 @@ class _CommandePageState extends State<CommandePage> {
                                 "${cartProvider.availablePoints} pts disponibles sur ${user?.points ?? 0} pts",
                                 style: TextStyle(
                                   fontSize: 11,
-                                  color: Colors.grey[700],
+                                  color: isDark ? Colors.white60 : Colors.grey[700],
                                 ),
                               ),
                             ],
@@ -91,7 +100,7 @@ class _CommandePageState extends State<CommandePage> {
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
-                            color: Colors.red[700],
+                            color: isDark ? yellowColor : Colors.red[700],
                           ),
                         ),
                       ],
@@ -108,14 +117,14 @@ class _CommandePageState extends State<CommandePage> {
                       return Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: cardBg,
                           borderRadius: BorderRadius.circular(20),
                           border: item.isReward
                               ? Border.all(color: yellowColor, width: 2)
-                              : null,
+                              : Border.all(color: isDark ? Colors.white10 : Colors.transparent),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
+                              color: Colors.black.withOpacity(isDark ? 0.2 : 0.05),
                               blurRadius: 10,
                               offset: const Offset(0, 5),
                             ),
@@ -133,7 +142,7 @@ class _CommandePageState extends State<CommandePage> {
                                       decoration: BoxDecoration(
                                         color: item.isReward
                                             ? yellowColor.withOpacity(0.3)
-                                            : yellowColor.withOpacity(0.2),
+                                            : yellowColor.withOpacity(0.15),
                                         borderRadius: BorderRadius.circular(15),
                                       ),
                                       child: Padding(
@@ -157,7 +166,7 @@ class _CommandePageState extends State<CommandePage> {
                                             shape: BoxShape.circle,
                                             boxShadow: [
                                               BoxShadow(
-                                                color: yellowColor.withOpacity(0.5),
+                                                color: Colors.black.withOpacity(0.2),
                                                 blurRadius: 8,
                                               ),
                                             ],
@@ -181,9 +190,10 @@ class _CommandePageState extends State<CommandePage> {
                                           Expanded(
                                             child: Text(
                                               item.product.name,
-                                              style: const TextStyle(
+                                              style: TextStyle(
                                                 fontWeight: FontWeight.bold,
                                                 fontSize: 16,
+                                                color: textColor,
                                               ),
                                             ),
                                           ),
@@ -212,16 +222,17 @@ class _CommandePageState extends State<CommandePage> {
                                           "Récompense • ${item.rewardCost} pts",
                                           style: TextStyle(
                                             fontSize: 12,
-                                            color: Colors.grey[600],
+                                            color: isDark ? yellowColor : Colors.grey[600],
                                             fontWeight: FontWeight.w600,
                                           ),
                                         )
                                       else
                                         Text(
                                           "${item.product.price}€",
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             fontWeight: FontWeight.w900,
                                             fontSize: 16,
+                                            color: textColor,
                                           ),
                                         ),
                                     ],
@@ -232,7 +243,7 @@ class _CommandePageState extends State<CommandePage> {
                                     padding: const EdgeInsets.symmetric(
                                         horizontal: 8, vertical: 4),
                                     decoration: BoxDecoration(
-                                      color: Colors.grey[100],
+                                      color: isDark ? Colors.white10 : Colors.grey[100],
                                       borderRadius: BorderRadius.circular(10),
                                     ),
                                     child: Row(
@@ -241,22 +252,22 @@ class _CommandePageState extends State<CommandePage> {
                                           onTap: () {
                                             cartProvider.updateQuantity(item, -1);
                                           },
-                                          child: const Icon(Icons.remove, size: 18),
+                                          child: Icon(Icons.remove, size: 18, color: textColor),
                                         ),
                                         Padding(
                                           padding: const EdgeInsets.symmetric(
                                               horizontal: 10),
                                           child: Text(
                                             "${item.quantity}",
-                                            style: const TextStyle(
-                                                fontWeight: FontWeight.bold),
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold, color: textColor),
                                           ),
                                         ),
                                         GestureDetector(
                                           onTap: () {
                                             cartProvider.updateQuantity(item, 1);
                                           },
-                                          child: const Icon(Icons.add, size: 18),
+                                          child: Icon(Icons.add, size: 18, color: textColor),
                                         ),
                                       ],
                                     ),
@@ -279,14 +290,14 @@ class _CommandePageState extends State<CommandePage> {
                 ),
                 Container(
                   padding: const EdgeInsets.all(25),
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+                  decoration: BoxDecoration(
+                    color: cardBg,
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black12,
+                        color: Colors.black.withOpacity(isDark ? 0.3 : 0.1),
                         blurRadius: 20,
-                        offset: Offset(0, -5),
+                        offset: const Offset(0, -5),
                       ),
                     ],
                   ),
@@ -295,30 +306,30 @@ class _CommandePageState extends State<CommandePage> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text("Sous-total",
-                              style: TextStyle(color: Colors.grey, fontSize: 16)),
+                          Text("Sous-total",
+                              style: TextStyle(color: subTextColor, fontSize: 16)),
                           Text("${cartProvider.subTotal.toStringAsFixed(2)}€",
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 16)),
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 16, color: textColor)),
                         ],
                       ),
                       const SizedBox(height: 10),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text("Points gagnés",
-                              style: TextStyle(color: Colors.grey, fontSize: 16)),
+                          Text("Points gagnés",
+                              style: TextStyle(color: subTextColor, fontSize: 16)),
                           Text("${cartProvider.points}",
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 16)),
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 16, color: textColor)),
                         ],
                       ),
                       const SizedBox(height: 10),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text("Frais de livraison",
-                              style: TextStyle(color: Colors.grey, fontSize: 16)),
+                          Text("Frais de livraison",
+                              style: TextStyle(color: subTextColor, fontSize: 16)),
                           cartProvider.deliveryFee == 0
                               ? const Text("Offerts",
                                   style: TextStyle(
@@ -327,21 +338,21 @@ class _CommandePageState extends State<CommandePage> {
                                       color: Colors.green))
                               : Text(
                                   "${cartProvider.deliveryFee.toStringAsFixed(2)}€",
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.bold, fontSize: 16)),
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold, fontSize: 16, color: textColor)),
                         ],
                       ),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 20),
-                        child: Divider(),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 20),
+                        child: Divider(color: isDark ? Colors.white10 : Colors.grey[200]),
                       ),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          const Text("Total",
+                          Text("Total",
                               style: TextStyle(
-                                  fontWeight: FontWeight.w900, fontSize: 20)),
+                                  fontWeight: FontWeight.w900, fontSize: 20, color: textColor)),
                           isPremium
                               ? Column(
                                   mainAxisSize: MainAxisSize.min,
@@ -349,9 +360,9 @@ class _CommandePageState extends State<CommandePage> {
                                   children: [
                                     Text(
                                       "${originalPrice.toStringAsFixed(2)}€",
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         decoration: TextDecoration.lineThrough,
-                                        color: Colors.grey,
+                                        color: isDark ? Colors.white38 : Colors.grey,
                                         fontSize: 14,
                                       ),
                                     ),
@@ -366,8 +377,8 @@ class _CommandePageState extends State<CommandePage> {
                                 )
                               : Text(
                                   "${finalAmount.toStringAsFixed(2)} €",
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.w900, fontSize: 20),
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.w900, fontSize: 20, color: textColor),
                                 ),
                         ],
                       ),
@@ -390,8 +401,8 @@ class _CommandePageState extends State<CommandePage> {
                                   );
                                 },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.black,
-                            foregroundColor: yellowColor,
+                            backgroundColor: isDark ? yellowColor : Colors.black,
+                            foregroundColor: isDark ? Colors.black : yellowColor,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(15),
                             ),

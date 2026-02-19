@@ -15,8 +15,8 @@ class HomePage extends StatefulWidget {
 
   @override
   State<HomePage> createState() => _HomePageState();
-
 }
+
 class _HomePageState extends State<HomePage> {
   final UserService _userService = UserService();
   final Color yellowColor = const Color.fromARGB(255, 242, 202, 80);
@@ -28,18 +28,20 @@ class _HomePageState extends State<HomePage> {
       Provider.of<FavoriteProvider>(context, listen: false).fetchFavorites();
     });
   }
-    
+
   @override
   Widget build(BuildContext context) {
+    // Détection du mode pour adapter les éléments secondaires (points, indicateurs)
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: const CustomAppBar(),
       body: FutureBuilder<UserModel?>(
         future: _userService.getCurrentUserDetails(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(child: CircularProgressIndicator(color: isDark ? yellowColor : Colors.black));
           }
 
           if (snapshot.hasError) {
@@ -107,7 +109,7 @@ class _HomePageState extends State<HomePage> {
                                       const SizedBox(height: 5),
                                       ElevatedButton(
                                         onPressed: () {},
-                                        
+
                                         style: ElevatedButton.styleFrom(
                                           minimumSize: const Size(double.infinity, 30),
                                           backgroundColor: Colors.white,
@@ -186,23 +188,23 @@ class _HomePageState extends State<HomePage> {
                         width: 8,
                         height: 8,
                         decoration: BoxDecoration(
-                          color: Colors.grey.shade300,
+                          color: isDark ? Colors.white12 : Colors.grey.shade300,
                           shape: BoxShape.circle,
                         ),
                       ),
-                      
+
                       const SizedBox(width: 5),
                       Container(
                         width: 8,
                         height: 8,
                         decoration: BoxDecoration(
-                          color: Colors.grey.shade300,
+                          color: isDark ? Colors.white12 : Colors.grey.shade300,
                           shape: BoxShape.circle,
                         ),
                       ),
                     ],
                   ),
-                
+
                   const FoodCategoryNavBar(),
 
                   const SizedBox(height: 20),

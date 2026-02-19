@@ -3,17 +3,24 @@ import 'package:atlas/providers/CommandeProvider.dart';
 import 'package:atlas/providers/HistoryProvider.dart';
 import 'package:atlas/providers/UserProvider.dart';
 import 'package:atlas/widgets/login/Toast.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class PaymentPage extends StatefulWidget {
   final double totalAmount;
   final int points;
   final int pointsToDeduct;
 
-  const PaymentPage({super.key, required this.totalAmount, required this.points, this.pointsToDeduct = 0});
+  const PaymentPage({
+    super.key,
+    required this.totalAmount,
+    required this.points,
+    this.pointsToDeduct = 0
+  });
 
   @override
   State<PaymentPage> createState() => _PaymentPageState();
@@ -42,7 +49,7 @@ class _PaymentPageState extends State<PaymentPage> {
     super.dispose();
   }
 
-  void _showAddressPicker(List<String> savedAddresses) {
+  void _showAddressPicker(List<String> savedAddresses, bool isDark, Color cardBg, Color textColor) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -50,19 +57,25 @@ class _PaymentPageState extends State<PaymentPage> {
       builder: (context) {
         return Container(
           height: MediaQuery.of(context).size.height * 0.7,
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+          decoration: BoxDecoration(
+            color: cardBg,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
           ),
           child: Column(
             children: [
               const SizedBox(height: 15),
               Container(
                 width: 50, height: 5,
-                decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10)),
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.white10 : Colors.grey[300],
+                  borderRadius: BorderRadius.circular(10)
+                ),
               ),
               const SizedBox(height: 20),
-              Text("Mes adresses", style: GoogleFonts.lilitaOne(fontSize: 24, color: Colors.black)),
+              Text(
+                "Mes adresses",
+                style: GoogleFonts.lilitaOne(fontSize: 24, color: textColor)
+              ),
               const SizedBox(height: 20),
 
               Expanded(
@@ -71,9 +84,9 @@ class _PaymentPageState extends State<PaymentPage> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.no_backpack_outlined, size: 50, color: Colors.grey[300]),
+                        Icon(Icons.no_backpack_outlined, size: 50, color: isDark ? Colors.white10 : Colors.grey[300]),
                         const SizedBox(height: 10),
-                        const Text("Aucune adresse enregistrée", style: TextStyle(color: Colors.grey)),
+                        Text("Aucune adresse enregistrée", style: TextStyle(color: isDark ? Colors.white38 : Colors.grey)),
                       ],
                     ),
                   )
@@ -94,11 +107,11 @@ class _PaymentPageState extends State<PaymentPage> {
                         child: Container(
                           padding: const EdgeInsets.all(15),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: isDark ? Colors.white.withOpacity(0.05) : Colors.white,
                             borderRadius: BorderRadius.circular(15),
-                            border: Border.all(color: Colors.grey.shade200),
+                            border: Border.all(color: isDark ? Colors.white10 : Colors.grey.shade200),
                             boxShadow: [
-                              BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 3))
+                              BoxShadow(color: Colors.black.withOpacity(isDark ? 0.2 : 0.03), blurRadius: 10, offset: const Offset(0, 3))
                             ]
                           ),
                           child: Row(
@@ -106,28 +119,31 @@ class _PaymentPageState extends State<PaymentPage> {
                               Container(
                                 padding: const EdgeInsets.all(10),
                                 decoration: BoxDecoration(
-                                  color: Colors.black,
+                                  color: isDark ? yellowColor : Colors.black,
                                   borderRadius: BorderRadius.circular(10),
                                 ),
-                                child: Icon(Icons.location_on, color: yellowColor, size: 20),
+                                child: Icon(Icons.location_on, color: isDark ? Colors.black : yellowColor, size: 20),
                               ),
                               const SizedBox(width: 15),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text("Adresse ${index + 1}", style: TextStyle(color: Colors.grey[500], fontSize: 11, fontWeight: FontWeight.bold)),
+                                    Text(
+                                      "Adresse ${index + 1}",
+                                      style: TextStyle(color: isDark ? Colors.white38 : Colors.grey[500], fontSize: 11, fontWeight: FontWeight.bold)
+                                    ),
                                     const SizedBox(height: 2),
                                     Text(
                                       address,
-                                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                                      style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: textColor),
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ],
                                 ),
                               ),
-                              const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
+                              Icon(Icons.arrow_forward_ios, size: 14, color: isDark ? Colors.white24 : Colors.grey),
                             ],
                           ),
                         ),
@@ -147,19 +163,27 @@ class _PaymentPageState extends State<PaymentPage> {
     final userProvider = context.watch<UserProvider>();
     final savedAddresses = userProvider.user?.addresses ?? [];
 
+    // --- LOGIQUE DE THÈME DYNAMIQUE ---
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final Color scaffoldBg = Theme.of(context).scaffoldBackgroundColor;
+    final Color cardBg = Theme.of(context).cardColor;
+    final Color textColor = isDark ? Colors.white : Colors.black;
+    final Color subTextColor = isDark ? Colors.white38 : Colors.grey[700]!;
+    // ---------------------------------
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF9F9F9),
+      backgroundColor: scaffoldBg,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: scaffoldBg,
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back, color: textColor),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           "Paiement",
-          style: GoogleFonts.lilitaOne(color: Colors.black, fontSize: 24),
+          style: GoogleFonts.lilitaOne(color: textColor, fontSize: 24),
         ),
       ),
       body: Column(
@@ -175,13 +199,16 @@ class _PaymentPageState extends State<PaymentPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text("Où livrer ce festin ?", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
+                        Text(
+                          "Où livrer ce festin ?",
+                          style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: textColor)
+                        ),
                         if (savedAddresses.isNotEmpty)
                           GestureDetector(
-                            onTap: () => _showAddressPicker(savedAddresses),
+                            onTap: () => _showAddressPicker(savedAddresses, isDark, cardBg, textColor),
                             child: Text(
                               "Mes adresses",
-                              style: TextStyle(color: Colors.grey[700], fontWeight: FontWeight.bold, decoration: TextDecoration.underline),
+                              style: TextStyle(color: isDark ? yellowColor : Colors.grey[700], fontWeight: FontWeight.bold, decoration: TextDecoration.underline),
                             ),
                           ),
                       ],
@@ -190,21 +217,31 @@ class _PaymentPageState extends State<PaymentPage> {
 
                     TextFormField(
                       controller: _addressController,
+                      style: TextStyle(color: textColor),
                       validator: (value) => value == null || value.isEmpty ? 'Veuillez entrer une adresse' : null,
                       decoration: InputDecoration(
                         hintText: "12 Rue de la Pizza, 75000 Paris",
-                        prefixIcon: const Icon(Icons.location_on_outlined),
+                        hintStyle: TextStyle(color: isDark ? Colors.white24 : Colors.grey),
+                        prefixIcon: Icon(Icons.location_on_outlined, color: isDark ? yellowColor : Colors.black54),
                         suffixIcon: savedAddresses.isNotEmpty
                           ? IconButton(
-                              icon: const Icon(Icons.keyboard_arrow_down),
-                              onPressed: () => _showAddressPicker(savedAddresses),
+                              icon: Icon(Icons.keyboard_arrow_down, color: isDark ? Colors.white38 : Colors.black54),
+                              onPressed: () => _showAddressPicker(savedAddresses, isDark, cardBg, textColor),
                             )
                           : null,
                         filled: true,
-                        fillColor: Colors.white,
+                        fillColor: isDark ? Colors.white.withOpacity(0.05) : Colors.white,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(15),
                           borderSide: BorderSide.none,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(15),
+                          borderSide: BorderSide(color: isDark ? Colors.white10 : Colors.transparent),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(15),
+                          borderSide: BorderSide(color: isDark ? yellowColor : Colors.black, width: 1.5),
                         ),
                         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                       ),
@@ -212,15 +249,18 @@ class _PaymentPageState extends State<PaymentPage> {
 
                     const SizedBox(height: 30),
 
-                    const Text("Moyen de paiement", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
+                    Text(
+                      "Moyen de paiement",
+                      style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: textColor)
+                    ),
                     const SizedBox(height: 15),
                     Row(
                       children: [
-                        _buildPaymentMethodOption(0, "Carte", Icons.credit_card),
+                        _buildPaymentMethodOption(0, "Carte", Icons.credit_card, isDark),
                         const SizedBox(width: 10),
-                        _buildPaymentMethodOption(1, "Apple Pay", Icons.apple),
+                        _buildPaymentMethodOption(1, "Apple Pay", Icons.apple, isDark),
                         const SizedBox(width: 10),
-                        _buildPaymentMethodOption(2, "Espèces", Icons.money),
+                        _buildPaymentMethodOption(2, "Espèces", Icons.money, isDark),
                       ],
                     ),
 
@@ -236,11 +276,14 @@ class _PaymentPageState extends State<PaymentPage> {
                             padding: const EdgeInsets.all(25),
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
-                                colors: [Colors.black, Colors.grey.shade900],
+                                colors: isDark
+                                  ? [const Color(0xFF1E1E1E), Colors.black]
+                                  : [Colors.black, Colors.grey.shade900],
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
                               ),
                               borderRadius: BorderRadius.circular(20),
+                              border: isDark ? Border.all(color: Colors.white10) : null,
                               boxShadow: [
                                 BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10))
                               ],
@@ -258,7 +301,7 @@ class _PaymentPageState extends State<PaymentPage> {
                                 ),
                                 Text(
                                   _cardNumberController.text.isEmpty ? "**** **** **** ****" : _cardNumberController.text,
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 22,
                                     letterSpacing: 2,
@@ -305,6 +348,7 @@ class _PaymentPageState extends State<PaymentPage> {
                         icon: Icons.credit_card,
                         isNumber: true,
                         maxLength: 19,
+                        isDark: isDark,
                         inputFormatters: [
                           FilteringTextInputFormatter.digitsOnly,
                           _CardNumberFormatter(),
@@ -320,6 +364,7 @@ class _PaymentPageState extends State<PaymentPage> {
                               icon: Icons.calendar_today,
                               isNumber: true,
                               maxLength: 5,
+                              isDark: isDark,
                               inputFormatters: [
                                 FilteringTextInputFormatter.digitsOnly,
                                 _CardExpiryFormatter(),
@@ -334,6 +379,7 @@ class _PaymentPageState extends State<PaymentPage> {
                               icon: Icons.lock_outline,
                               isNumber: true,
                               maxLength: 3,
+                              isDark: isDark,
                               inputFormatters: [
                                 FilteringTextInputFormatter.digitsOnly,
                               ],
@@ -347,6 +393,7 @@ class _PaymentPageState extends State<PaymentPage> {
                         hint: "Nom du titulaire",
                         icon: Icons.person_outline,
                         isNumber: false,
+                        isDark: isDark,
                       ),
                     ],
                   ],
@@ -358,10 +405,10 @@ class _PaymentPageState extends State<PaymentPage> {
           Container(
             padding: const EdgeInsets.all(25),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: cardBg,
               borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
               boxShadow: [
-                BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 20, offset: const Offset(0, -5))
+                BoxShadow(color: Colors.black.withOpacity(isDark ? 0.3 : 0.1), blurRadius: 20, offset: const Offset(0, -5))
               ],
             ),
             child: Column(
@@ -369,10 +416,10 @@ class _PaymentPageState extends State<PaymentPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text("Total à payer", style: TextStyle(fontSize: 16, color: Colors.grey)),
+                    Text("Total à payer", style: TextStyle(fontSize: 16, color: isDark ? Colors.white38 : Colors.grey)),
                     Text(
                       "${widget.totalAmount.toStringAsFixed(2)}€",
-                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900),
+                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: textColor),
                     ),
                   ],
                 ),
@@ -383,13 +430,13 @@ class _PaymentPageState extends State<PaymentPage> {
                   child: ElevatedButton(
                     onPressed: _isProcessing ? null : _processPayment,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black,
-                      foregroundColor: yellowColor,
+                      backgroundColor: isDark ? yellowColor : Colors.black,
+                      foregroundColor: isDark ? Colors.black : yellowColor,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                       elevation: 0,
                     ),
                     child: _isProcessing
-                      ? SizedBox(height: 25, width: 25, child: CircularProgressIndicator(color: yellowColor, strokeWidth: 3))
+                      ? CircularProgressIndicator(color: isDark ? Colors.black : yellowColor, strokeWidth: 3)
                       : const Text("Valider la commande", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   ),
                 ),
@@ -405,6 +452,7 @@ class _PaymentPageState extends State<PaymentPage> {
     required TextEditingController controller,
     required String hint,
     required IconData icon,
+    required bool isDark,
     bool isNumber = false,
     int? maxLength,
     Widget? suffixIcon,
@@ -415,6 +463,7 @@ class _PaymentPageState extends State<PaymentPage> {
       keyboardType: isNumber ? TextInputType.number : TextInputType.text,
       maxLength: maxLength,
       inputFormatters: inputFormatters,
+      style: TextStyle(color: isDark ? Colors.white : Colors.black),
       validator: (value) {
         if (_selectedPaymentMethod == 0 && (value == null || value.isEmpty)) {
           return 'Champ requis';
@@ -423,22 +472,27 @@ class _PaymentPageState extends State<PaymentPage> {
       },
       decoration: InputDecoration(
         hintText: hint,
+        hintStyle: TextStyle(color: isDark ? Colors.white24 : Colors.grey),
         counterText: "",
-        prefixIcon: Icon(icon, color: Colors.grey),
+        prefixIcon: Icon(icon, color: isDark ? yellowColor : Colors.grey),
         suffixIcon: suffixIcon,
         filled: true,
-        fillColor: Colors.white,
+        fillColor: isDark ? Colors.white.withOpacity(0.05) : Colors.white,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(15),
+          borderSide: BorderSide(color: isDark ? Colors.white10 : Colors.transparent),
+        ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(15),
-          borderSide: const BorderSide(color: Colors.black, width: 1.5),
+          borderSide: BorderSide(color: isDark ? yellowColor : Colors.black, width: 1.5),
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       ),
     );
   }
 
-  Widget _buildPaymentMethodOption(int index, String label, IconData icon) {
+  Widget _buildPaymentMethodOption(int index, String label, IconData icon, bool isDark) {
     final isSelected = _selectedPaymentMethod == index;
     return Expanded(
       child: GestureDetector(
@@ -447,18 +501,31 @@ class _PaymentPageState extends State<PaymentPage> {
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(vertical: 15),
           decoration: BoxDecoration(
-            color: isSelected ? Colors.black : Colors.white,
+            color: isSelected
+              ? (isDark ? yellowColor : Colors.black)
+              : (isDark ? Colors.white.withOpacity(0.05) : Colors.white),
             borderRadius: BorderRadius.circular(15),
-            border: Border.all(color: isSelected ? Colors.black : Colors.grey.shade300),
+            border: Border.all(
+              color: isSelected
+                ? (isDark ? yellowColor : Colors.black)
+                : (isDark ? Colors.white10 : Colors.grey.shade300)
+            ),
           ),
           child: Column(
             children: [
-              Icon(icon, color: isSelected ? yellowColor : Colors.grey),
+              Icon(
+                icon,
+                color: isSelected
+                  ? (isDark ? Colors.black : yellowColor)
+                  : (isDark ? Colors.white38 : Colors.grey)
+              ),
               const SizedBox(height: 5),
               Text(
                 label,
                 style: TextStyle(
-                  color: isSelected ? Colors.white : Colors.grey,
+                  color: isSelected
+                    ? (isDark ? Colors.black : Colors.white)
+                    : (isDark ? Colors.white38 : Colors.grey),
                   fontWeight: FontWeight.bold,
                   fontSize: 12
                 ),
@@ -485,28 +552,19 @@ class _PaymentPageState extends State<PaymentPage> {
         final historyProvider = Provider.of<HistoryProvider>(context, listen: false);
         final userProvider = Provider.of<UserProvider>(context, listen: false);
 
-        // Créer la commande
         await historyProvider.createOrderFromCart(cartProvider, widget.totalAmount);
 
-        // Calculer le solde final des points:
-        // Points gagnés par la commande - Points utilisés pour les récompenses
-        final int pointsToAdd = widget.points; // Points gagnés
-        final int pointsToDeduct = widget.pointsToDeduct; // Points utilisés pour récompenses
+        final int pointsToAdd = widget.points;
+        final int pointsToDeduct = widget.pointsToDeduct;
 
-        print("Points à ajouter: $pointsToAdd");
-        print("Points à déduire: $pointsToDeduct");
-
-        // D'abord déduire les points des récompenses
         if (pointsToDeduct > 0) {
           await userProvider.deductPoints(pointsToDeduct);
         }
 
-        // Ensuite ajouter les points gagnés
         if (pointsToAdd > 0) {
           await userProvider.AddPoints(pointsToAdd);
         }
 
-        // Vider le panier
         cartProvider.clearCart();
 
         Toast.show(context, "Commande validée ! Un livreur est en route 🛵");

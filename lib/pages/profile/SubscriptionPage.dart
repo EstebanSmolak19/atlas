@@ -1,7 +1,4 @@
-import 'package:atlas/models/UserModel.dart';
 import 'package:atlas/providers/UserProvider.dart';
-import 'package:atlas/widgets/login/Toast.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -15,7 +12,7 @@ class SubscriptionPage extends StatefulWidget {
 
 class _SubscriptionPageState extends State<SubscriptionPage> {
   final Color yellowColor = const Color.fromARGB(255, 242, 202, 80);
-  int _selectedPlanIndex = 1; 
+  int _selectedPlanIndex = 1;
   bool _isLoading = false;
 
   final List<Map<String, dynamic>> _plans = [
@@ -39,7 +36,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
       "id": "standard",
       "benefits": [
         "Livraison offerte illimitée 🚀",
-        "10% de réduction sur tout 💎", 
+        "10% de réduction sur tout 💎",
         "Service client prioritaire 24/7",
         "Badge Explorer exclusif"
       ]
@@ -81,27 +78,32 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
     final user = context.watch<UserProvider>().user!;
     final bool isPremium = user.premium;
     final String? currentPlanId = user.planId;
-    
+
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final Color scaffoldBg = Theme.of(context).scaffoldBackgroundColor;
+    final Color cardBg = Theme.of(context).cardColor;
+    final Color textColor = isDark ? Colors.white : Colors.black;
+
     final List<String> currentBenefits = _plans[_selectedPlanIndex]['benefits'];
 
     String buttonText = "Confirmer l'abonnement";
-    Color buttonColor = Colors.black;
-    Color textColor = yellowColor;
-    
+    Color buttonColor = isDark ? yellowColor : Colors.black;
+    Color buttonTextColor = isDark ? Colors.black : yellowColor;
+
     if (isPremium) {
       if (_plans[_selectedPlanIndex]['id'] == currentPlanId) {
         buttonText = "Résilier mon abonnement";
-        buttonColor = Colors.white;
-        textColor = Colors.red;
+        buttonColor = isDark ? Colors.white10 : Colors.white;
+        buttonTextColor = Colors.red;
       } else {
         buttonText = "Changer pour l'offre ${_plans[_selectedPlanIndex]['name']}";
-        buttonColor = Colors.black;
-        textColor = Colors.white;
+        buttonColor = isDark ? yellowColor : Colors.black;
+        buttonTextColor = isDark ? Colors.black : Colors.white;
       }
     }
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: scaffoldBg,
       body: Stack(
         children: [
           Positioned(
@@ -122,7 +124,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                   Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.diamond_outlined, color: Color(0xFFF2CA50), size: 50),
+                      Icon(Icons.diamond_outlined, color: yellowColor, size: 50),
                       const SizedBox(height: 10),
                       Text(
                         isPremium ? "MON ABONNEMENT" : "ATLAS PREMIUM",
@@ -130,8 +132,8 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                       ),
                       const SizedBox(height: 5),
                       Text(
-                        isPremium 
-                          ? "Membre ${_plans.firstWhere((p) => p['id'] == currentPlanId, orElse: () => _plans[1])['name']} Actif" 
+                        isPremium
+                          ? "Membre ${_plans.firstWhere((p) => p['id'] == currentPlanId, orElse: () => _plans[1])['name']} Actif"
                           : "Voyagez en première classe",
                         style: TextStyle(color: yellowColor, fontSize: 14, letterSpacing: 1, fontWeight: FontWeight.bold),
                       ),
@@ -141,7 +143,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
               ),
             ),
           ),
-          
+
           Positioned(
             top: 50, left: 20,
             child: IconButton(
@@ -153,23 +155,22 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
           Column(
             children: [
               const SizedBox(height: 280),
-              
+
               Expanded(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      
                       const SizedBox(height: 30),
                       Center(
                         child: Text(
-                          isPremium ? "Gérer votre offre" : "Choisissez votre formule", 
-                          style: GoogleFonts.lilitaOne(fontSize: 22)
+                          isPremium ? "Gérer votre offre" : "Choisissez votre formule",
+                          style: GoogleFonts.lilitaOne(fontSize: 22, color: textColor)
                         ),
                       ),
                       const SizedBox(height: 20),
-                      
+
                       Row(
                         children: List.generate(_plans.length, (index) {
                           final plan = _plans[index];
@@ -184,16 +185,18 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                                 margin: const EdgeInsets.symmetric(horizontal: 4),
                                 padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 5),
                                 decoration: BoxDecoration(
-                                  color: isSelected ? Colors.black : Colors.white,
+                                  color: isSelected
+                                      ? (isDark ? yellowColor : Colors.black)
+                                      : cardBg,
                                   borderRadius: BorderRadius.circular(15),
                                   border: Border.all(
-                                    color: isSelected 
-                                      ? Colors.black 
-                                      : (isCurrentPlan ? yellowColor : Colors.grey.shade300), 
+                                    color: isSelected
+                                      ? (isDark ? yellowColor : Colors.black)
+                                      : (isCurrentPlan ? yellowColor : (isDark ? Colors.white10 : Colors.grey.shade300)),
                                     width: (isSelected || isCurrentPlan) ? 2 : 1
                                   ),
                                   boxShadow: isSelected ? [
-                                    BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 8, offset: const Offset(0, 4))
+                                    BoxShadow(color: Colors.black.withOpacity(isDark ? 0.4 : 0.2), blurRadius: 8, offset: const Offset(0, 4))
                                   ] : [],
                                 ),
                                 child: Column(
@@ -202,23 +205,70 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                                       Container(
                                         margin: const EdgeInsets.only(bottom: 8),
                                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                        decoration: BoxDecoration(color: yellowColor, borderRadius: BorderRadius.circular(8)),
-                                        child: const Text("ACTUEL", style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold)),
+                                        decoration: BoxDecoration(
+                                          color: isSelected ? Colors.white24 : yellowColor,
+                                          borderRadius: BorderRadius.circular(8)
+                                        ),
+                                        child: Text(
+                                          "ACTUEL",
+                                          style: TextStyle(
+                                            fontSize: 9,
+                                            fontWeight: FontWeight.bold,
+                                            color: isSelected ? Colors.white : Colors.black
+                                          )
+                                        ),
                                       )
                                     else if (plan['savings'] != null)
                                       Container(
                                         margin: const EdgeInsets.only(bottom: 8),
                                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                        decoration: BoxDecoration(color: Colors.green[100], borderRadius: BorderRadius.circular(8)),
-                                        child: Text(plan['savings'], style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.green[800])),
+                                        decoration: BoxDecoration(
+                                          color: isSelected ? Colors.white24 : Colors.green[100],
+                                          borderRadius: BorderRadius.circular(8)
+                                        ),
+                                        child: Text(
+                                          plan['savings'],
+                                          style: TextStyle(
+                                            fontSize: 9,
+                                            fontWeight: FontWeight.bold,
+                                            color: isSelected ? Colors.white : Colors.green[800]
+                                          )
+                                        ),
                                       )
-                                    else 
-                                      const SizedBox(height: 18), 
-                                      
-                                    Text(plan['name'], style: TextStyle(color: isSelected ? Colors.grey : Colors.grey[600], fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                                    else
+                                      const SizedBox(height: 18),
+
+                                    Text(
+                                      plan['name'],
+                                      style: TextStyle(
+                                        color: isSelected
+                                            ? (isDark ? Colors.black54 : Colors.grey)
+                                            : (isDark ? Colors.white60 : Colors.grey[600]),
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: 1
+                                      )
+                                    ),
                                     const SizedBox(height: 4),
-                                    Text(plan['price'], style: TextStyle(color: isSelected ? Colors.white : Colors.black, fontSize: 18, fontWeight: FontWeight.w900)),
-                                    Text(plan['period'], style: TextStyle(color: isSelected ? Colors.grey : Colors.grey[600], fontSize: 10)),
+                                    Text(
+                                      plan['price'],
+                                      style: TextStyle(
+                                        color: isSelected
+                                            ? (isDark ? Colors.black : Colors.white)
+                                            : textColor,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w900
+                                      )
+                                    ),
+                                    Text(
+                                      plan['period'],
+                                      style: TextStyle(
+                                        color: isSelected
+                                            ? (isDark ? Colors.black45 : Colors.grey)
+                                            : (isDark ? Colors.white38 : Colors.grey[600]),
+                                        fontSize: 10
+                                      )
+                                    ),
                                   ],
                                 ),
                               ),
@@ -229,11 +279,14 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
 
                       const SizedBox(height: 30),
 
-                      const Padding(
-                        padding: EdgeInsets.only(bottom: 10),
-                        child: Text("Avantages inclus :", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: Text(
+                          "Avantages inclus :",
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: textColor)
+                        ),
                       ),
-                      
+
                       AnimatedSwitcher(
                         duration: const Duration(milliseconds: 300),
                         child: Column(
@@ -245,10 +298,19 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                                 Container(
                                   padding: const EdgeInsets.all(4),
                                   decoration: BoxDecoration(color: yellowColor.withOpacity(0.2), shape: BoxShape.circle),
-                                  child: const Icon(Icons.check, size: 12, color: Colors.black),
+                                  child: Icon(Icons.check, size: 12, color: isDark ? yellowColor : Colors.black),
                                 ),
                                 const SizedBox(width: 12),
-                                Expanded(child: Text(benefit, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14))),
+                                Expanded(
+                                  child: Text(
+                                    benefit,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 14,
+                                      color: isDark ? Colors.white70 : Colors.black87
+                                    )
+                                  )
+                                ),
                               ],
                             ),
                           )).toList(),
@@ -264,25 +326,42 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
               Container(
                 padding: const EdgeInsets.all(25),
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20, offset: const Offset(0, -5))]
+                  color: cardBg,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
+                      blurRadius: 20,
+                      offset: const Offset(0, -5)
+                    )
+                  ]
                 ),
                 child: SizedBox(
                   width: double.infinity,
                   height: 55,
                   child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      // Logique d'abonnement à implémenter
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: buttonColor,
-                      foregroundColor: textColor,
+                      foregroundColor: buttonTextColor,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(15),
-                        side: (isPremium && _plans[_selectedPlanIndex]['id'] == currentPlanId) ? const BorderSide(color: Colors.red, width: 2) : BorderSide.none
+                        side: (isPremium && _plans[_selectedPlanIndex]['id'] == currentPlanId)
+                            ? const BorderSide(color: Colors.red, width: 2)
+                            : BorderSide.none
                       ),
                       elevation: (isPremium && _plans[_selectedPlanIndex]['id'] == currentPlanId) ? 0 : 5,
                     ),
-                    child: _isLoading 
-                      ? const SizedBox(height: 25, width: 25, child: CircularProgressIndicator(strokeWidth: 3))
+                    child: _isLoading
+                      ? SizedBox(
+                          height: 25,
+                          width: 25,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 3,
+                            color: buttonTextColor
+                          )
+                        )
                       : Text(
                           buttonText,
                           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
