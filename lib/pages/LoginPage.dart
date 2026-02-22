@@ -3,7 +3,9 @@ import 'package:atlas/enum/InputType.dart';
 import 'package:atlas/providers/UserProvider.dart';
 import 'package:atlas/widgets/login/AuthSheet.dart';
 import 'package:atlas/widgets/login/inputField.dart';
+import 'package:atlas/widgets/login/Toast.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 class LoginPage extends StatefulWidget {
@@ -15,7 +17,6 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final Color yellowColor = const Color.fromARGB(255, 242, 202, 80);
-  final Color scaffoldColor = const Color(0xFFF9F9F9);
 
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -27,12 +28,71 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
+  void _showForgotPasswordDialog(BuildContext context) {
+    final TextEditingController resetController = TextEditingController();
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          "Réinitialisation",
+          style: GoogleFonts.lilitaOne(color: isDark ? Colors.white : Colors.black)
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Saisissez votre email pour recevoir un lien de réinitialisation.",
+              style: TextStyle(color: Colors.grey, fontSize: 14),
+            ),
+            const SizedBox(height: 20),
+            InputField(
+              label: "Votre Email",
+              controller: resetController,
+              type: InputType.email,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("ANNULER", style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (resetController.text.isNotEmpty) {
+                await Provider.of<UserProvider>(context, listen: false)
+                    .forgotPassword(resetController.text);
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  Toast.show(context, "Email envoyé ! Vérifiez votre boîte de réception 📧");
+                }
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: isDark ? yellowColor : Colors.black,
+              foregroundColor: isDark ? Colors.black : yellowColor,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text("ENVOYER", style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final userProvider = context.watch<UserProvider>();
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final Color textColor = Theme.of(context).textTheme.bodyMedium?.color ?? Colors.black;
 
     return Scaffold(
-      backgroundColor: scaffoldColor,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -52,7 +112,7 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
                 Positioned(
-                  top: 65, 
+                  top: 65,
                   child: Center(
                     child: ImageFiltered(
                       imageFilter: ui.ImageFilter.blur(sigmaX: 6.0, sigmaY: 6.0),
@@ -86,18 +146,34 @@ class _LoginPageState extends State<LoginPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   InputField(
-                    label: "Email", 
+                    label: "Email",
                     controller: _emailController,
                     type: InputType.email
                   ),
 
                   InputField(
-                    label: "Mot de passe", 
+                    label: "Mot de passe",
                     controller: _passwordController,
                     type: InputType.password
                   ),
 
-                  const SizedBox(height: 10),
+                  // --- AJOUT : LIEN MOT DE PASSE OUBLIÉ ---
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: GestureDetector(
+                      onTap: () => _showForgotPasswordDialog(context),
+                      child: Text(
+                        "Mot de passe oublié ?",
+                        style: TextStyle(
+                          color: isDark ? yellowColor : Colors.black87,
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 25),
 
                   SizedBox(
                     width: double.infinity,
@@ -111,15 +187,15 @@ class _LoginPageState extends State<LoginPage> {
                         );
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black,
-                        foregroundColor: Colors.white,
+                        backgroundColor: isDark ? yellowColor : Colors.black,
+                        foregroundColor: isDark ? Colors.black : Colors.white,
                         elevation: 5,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(15),
                         ),
                       ),
                       child: userProvider.isLoading
-                          ? const CircularProgressIndicator(color: Colors.white)
+                          ? CircularProgressIndicator(color: isDark ? Colors.black : Colors.white)
                           : const Text(
                               "Se connecter",
                               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -132,17 +208,17 @@ class _LoginPageState extends State<LoginPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text("Pas encore de compte ? ", style: TextStyle(fontSize: 14, color: Colors.black)),
+                      Text("Pas encore de compte ? ", style: TextStyle(fontSize: 14, color: textColor)),
                       GestureDetector(
                         onTap: () => AuthSheet.showRegister(context),
-                        child: const Text(
+                        child: Text(
                           "Créer un compte",
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black, decoration: TextDecoration.underline),
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: isDark ? yellowColor : Colors.black, decoration: TextDecoration.underline),
                         ),
                       ),
                     ],
                   ),
-                  
+
                   const SizedBox(height: 40),
                 ],
               ),

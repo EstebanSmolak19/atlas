@@ -2,8 +2,9 @@ import 'package:atlas/models/AppRoutes.dart';
 import 'package:atlas/models/ProductModel.dart';
 import 'package:atlas/providers/FavoriteProvider.dart';
 import 'package:atlas/providers/CommandeProvider.dart';
-import 'package:atlas/widgets/appbar/customAppbar.dart'; 
-import 'package:atlas/widgets/login/Toast.dart'; 
+import 'package:atlas/providers/NavigationProvider.dart';
+import 'package:atlas/widgets/appbar/customAppbar.dart';
+import 'package:atlas/widgets/login/Toast.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -21,7 +22,7 @@ class _FavoritePageState extends State<FavoritePage> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() => 
+    Future.microtask(() =>
       Provider.of<FavoriteProvider>(context, listen: false).fetchFavorites()
     );
   }
@@ -31,25 +32,30 @@ class _FavoritePageState extends State<FavoritePage> {
     final favProvider = context.watch<FavoriteProvider>();
     final cartProvider = context.read<Commandeprovider>();
     final favorites = favProvider.favoriteProducts;
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF9F9F9),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: const CustomAppBar(),
       body: favorites.isEmpty
-          ? _buildEmptyState()
+          ? _buildEmptyState(isDark)
           : ListView.separated(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 25),
               itemCount: favorites.length,
               separatorBuilder: (context, index) => const SizedBox(height: 20),
               itemBuilder: (context, index) {
                 final product = favorites[index];
-                return _buildAtlasFavoriteCard(product, favProvider, cartProvider);
+                return _buildAtlasFavoriteCard(product, favProvider, cartProvider, isDark);
               },
             ),
     );
   }
 
-  Widget _buildAtlasFavoriteCard(ProductModel product, FavoriteProvider favProvider, Commandeprovider cartProvider) {
+  Widget _buildAtlasFavoriteCard(ProductModel product, FavoriteProvider favProvider, Commandeprovider cartProvider, bool isDark) {
+    final Color cardColor = Theme.of(context).cardColor;
+    final Color textColor = isDark ? Colors.white : Colors.black;
+    final Color subTextColor = isDark ? Colors.white70 : Colors.grey[600]!;
+
     return GestureDetector(
       onTap: () {
         Navigator.pushNamed(context, AppRoutes.detailPage, arguments: product);
@@ -57,11 +63,11 @@ class _FavoritePageState extends State<FavoritePage> {
       child: Container(
         height: 160,
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: cardColor,
           borderRadius: BorderRadius.circular(25),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.06),
+              color: Colors.black.withOpacity(isDark ? 0.3 : 0.06),
               blurRadius: 15,
               offset: const Offset(0, 5),
             ),
@@ -71,6 +77,7 @@ class _FavoritePageState extends State<FavoritePage> {
           children: [
             Row(
               children: [
+                // 1. ZONE IMAGE
                 Container(
                   width: 130,
                   decoration: BoxDecoration(
@@ -78,7 +85,7 @@ class _FavoritePageState extends State<FavoritePage> {
                     borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(25),
                       bottomLeft: Radius.circular(25),
-                      bottomRight: Radius.circular(50), 
+                      bottomRight: Radius.circular(50),
                     ),
                   ),
                   child: Stack(
@@ -99,10 +106,12 @@ class _FavoritePageState extends State<FavoritePage> {
                       Padding(
                         padding: const EdgeInsets.all(10.0),
                         child: Hero(
-                          tag: "fav_${product.name}",
+                          tag: "fav_${product.id}", // Utilisation de l'id pour le tag unique
                           child: Image.asset(
-                            'assets/${product.img_url}',
+                            '${product.img_url}',
                             fit: BoxFit.contain,
+                            errorBuilder: (context, error, stackTrace) =>
+                              const Icon(Icons.fastfood, size: 50, color: Colors.white),
                           ),
                         ),
                       ),
@@ -110,7 +119,7 @@ class _FavoritePageState extends State<FavoritePage> {
                   ),
                 ),
 
-                // 2. ZONE INFOS (Droite)
+                // 2. ZONE INFOS
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(15, 15, 15, 15),
@@ -118,7 +127,6 @@ class _FavoritePageState extends State<FavoritePage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        // Titre et Description
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -126,22 +134,21 @@ class _FavoritePageState extends State<FavoritePage> {
                               product.name,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w900,
-                                color: Colors.black,
+                                color: textColor,
                                 letterSpacing: -0.5,
                               ),
                             ),
                             const SizedBox(height: 6),
-                            // Description (Prévisualisation)
                             Text(
                               product.description,
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
                                 fontSize: 12,
-                                color: Colors.grey[600],
+                                color: subTextColor,
                                 height: 1.4,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -149,19 +156,18 @@ class _FavoritePageState extends State<FavoritePage> {
                           ],
                         ),
 
-                        // Prix et Actions
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              "${product.price}€",
-                              style: const TextStyle(
+                              "${product.price.toStringAsFixed(2)}€",
+                              style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w900,
-                                color: Colors.black,
+                                color: textColor,
                               ),
                             ),
-                            
+
                             GestureDetector(
                               onTap: () {
                                 cartProvider.addItem(product, 1);
@@ -170,17 +176,17 @@ class _FavoritePageState extends State<FavoritePage> {
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                 decoration: BoxDecoration(
-                                  color: Colors.black,
+                                  color: isDark ? yellowColor : Colors.black,
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: Row(
                                   children: [
-                                    const Icon(Icons.add_shopping_cart, size: 14, color: Colors.white),
+                                    Icon(Icons.add_shopping_cart, size: 14, color: isDark ? Colors.black : Colors.white),
                                     const SizedBox(width: 6),
                                     Text(
                                       "Ajouter",
                                       style: GoogleFonts.lilitaOne(
-                                        color: Colors.white,
+                                        color: isDark ? Colors.black : Colors.white,
                                         fontSize: 12,
                                       ),
                                     ),
@@ -197,6 +203,7 @@ class _FavoritePageState extends State<FavoritePage> {
               ],
             ),
 
+            // Bouton Supprimer
             Positioned(
               top: 10,
               right: 10,
@@ -207,10 +214,10 @@ class _FavoritePageState extends State<FavoritePage> {
                 child: Container(
                   padding: const EdgeInsets.all(5),
                   decoration: BoxDecoration(
-                    color: Colors.grey[100],
+                    color: isDark ? Colors.white10 : Colors.grey[100],
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(Icons.close, size: 16, color: Colors.grey[400]),
+                  child: Icon(Icons.close, size: 16, color: isDark ? Colors.white54 : Colors.grey[400]),
                 ),
               ),
             ),
@@ -220,7 +227,9 @@ class _FavoritePageState extends State<FavoritePage> {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(bool isDark) {
+    final Color textColor = isDark ? Colors.white : Colors.black;
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -236,13 +245,13 @@ class _FavoritePageState extends State<FavoritePage> {
                   shape: BoxShape.circle,
                 ),
               ),
-              Icon(Icons.bookmark_border, size: 60, color: Colors.black.withOpacity(0.8)),
+              Icon(Icons.bookmark_border, size: 60, color: textColor.withOpacity(0.8)),
             ],
           ),
           const SizedBox(height: 25),
           Text(
             "Ta collection est vide !",
-            style: GoogleFonts.lilitaOne(fontSize: 24, color: Colors.black),
+            style: GoogleFonts.lilitaOne(fontSize: 24, color: textColor),
           ),
           const SizedBox(height: 10),
           Padding(
@@ -251,7 +260,7 @@ class _FavoritePageState extends State<FavoritePage> {
               "Les explorateurs Atlas gardent toujours leurs meilleures découvertes ici.",
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Colors.grey[600],
+                color: isDark ? Colors.white70 : Colors.grey[600],
                 fontSize: 15,
                 height: 1.5,
                 fontWeight: FontWeight.w500
@@ -261,11 +270,16 @@ class _FavoritePageState extends State<FavoritePage> {
           const SizedBox(height: 35),
           ElevatedButton(
             onPressed: () {
-              Navigator.pushNamed(context, AppRoutes.categoryPage);
+              // RÉPARATION REDIRECTION : On utilise le NavigationProvider pour revenir à l'onglet "Carte" (Index 0)
+              context.read<NavigationProvider>().setIndex(0);
+              // Si la page de favoris est une page séparée, on pop, sinon le setIndex suffit
+              if (Navigator.canPop(context)) {
+                Navigator.pop(context);
+              }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.black,
-              foregroundColor: yellowColor,
+              backgroundColor: isDark ? yellowColor : Colors.black,
+              foregroundColor: isDark ? Colors.black : yellowColor,
               padding: const EdgeInsets.symmetric(horizontal: 35, vertical: 18),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
               elevation: 8,
@@ -275,7 +289,7 @@ class _FavoritePageState extends State<FavoritePage> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const Text(
-                  "Voir la carte",
+                  "VOIR LA CARTE",
                   style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1),
                 ),
                 const SizedBox(width: 10),

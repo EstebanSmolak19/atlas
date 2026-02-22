@@ -22,6 +22,8 @@ class FavoriteProvider with ChangeNotifier {
       return;
     }
 
+    print("[LOG] Récupération des favoris pour: ${user.email}");
+
     try {
       final snapshot = await _db
           .collection('users')
@@ -29,20 +31,24 @@ class FavoriteProvider with ChangeNotifier {
           .collection('favorites')
           .get();
 
+      // Récupère les IDs des documents
       _favoriteIds = snapshot.docs.map((doc) => doc.id).toList();
 
+      // Récupère les objets
       _favoriteProducts = snapshot.docs.map((doc) {
         final data = doc.data();
-        data['id'] = doc.id; 
+        data['id'] = doc.id;
         return ProductModel.fromMap(data);
       }).toList();
 
+      print("[LOG] ${_favoriteProducts.length} favoris chargés");
       notifyListeners();
     } catch (e) {
-      print("Erreur favoris: $e");
+      print("[LOG] Erreur lors de la récupération des favoris: $e");
     }
   }
 
+  // Vérifie si l'ID est dans la liste
   bool isFavorite(String id) => _favoriteIds.contains(id);
 
   Future<void> toggleFavorite(ProductModel product) async {
@@ -50,26 +56,38 @@ class FavoriteProvider with ChangeNotifier {
     if (user == null) return;
 
     final String prodId = product.id;
+
+    if (prodId.isEmpty) {
+      print("[LOG] Erreur : ID du produit vide, impossible de modifier les favoris.");
+      return;
+    }
+
     final docRef = _db.collection('users').doc(user.uid).collection('favorites').doc(prodId);
 
     if (_favoriteIds.contains(prodId)) {
+      print("[LOG] Suppression du produit des favoris: ${product.name}");
       try {
         await docRef.delete();
         _favoriteIds.remove(prodId);
         _favoriteProducts.removeWhere((p) => p.id == prodId);
+
+        print("[LOG] Produit supprimé des favoris avec succès");
         notifyListeners();
       } catch (e) {
-        print("Erreur suppression: $e");
+        print("[LOG] Erreur suppression favoris: $e");
       }
     } else {
+      print("[LOG] Ajout du produit aux favoris: ${product.name}");
       try {
         await docRef.set(product.toMap());
-        
+
         _favoriteIds.add(prodId);
         _favoriteProducts.add(product);
+
+        print("[LOG] Produit ajouté aux favoris avec succès");
         notifyListeners();
       } catch (e) {
-        print("Erreur ajout: $e");
+        print("[LOG] Erreur ajout favoris: $e");
       }
     }
   }

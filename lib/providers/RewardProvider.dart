@@ -14,7 +14,7 @@ class RewardProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
 
   Future<void> fetchRewards() async {
-    // On recharge pour avoir les dernières infos
+    print("[LOG] Récupération de la liste des récompenses...");
     _isLoading = true;
     notifyListeners();
 
@@ -26,12 +26,12 @@ class RewardProvider with ChangeNotifier {
 
       _rewards = snapshot.docs.map((doc) {
         final data = doc.data();
-        data['id'] = doc.id; // Injection ID
+        data['id'] = doc.id;
         return RewardModel.fromMap(data);
       }).toList();
 
     } catch (e) {
-      print("Erreur fetch rewards: $e");
+      print("[LOG] Erreur fetch rewards: $e");
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -42,6 +42,8 @@ class RewardProvider with ChangeNotifier {
     final user = _auth.currentUser;
     if (user == null) throw Exception("Utilisateur non connecté");
 
+    print("[LOG] Tentative d'échange de points pour: ${reward.title} (${reward.cost} pts)");
+
     final userRef = _db.collection('users').doc(user.uid);
 
     await _db.runTransaction((transaction) async {
@@ -51,13 +53,12 @@ class RewardProvider with ChangeNotifier {
       final int currentPoints = (userSnapshot.data()?['points'] ?? 0) as int;
 
       if (currentPoints < reward.cost) {
+        print("[LOG] Échec échange: Points insuffisants");
         throw Exception("Points insuffisants !");
       }
 
-      // 1. Débit des points
       transaction.update(userRef, {'points': currentPoints - reward.cost});
 
-      // 2. Création du coupon dans l'historique
       final historyRef = userRef.collection('redeemed_rewards').doc();
       transaction.set(historyRef, {
         'rewardId': reward.id,
@@ -70,6 +71,7 @@ class RewardProvider with ChangeNotifier {
       });
     });
 
+    print("[LOG] Récompense échangée avec succès !");
     notifyListeners();
   }
 }

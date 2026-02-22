@@ -12,6 +12,7 @@ class FoodCategoryNavBar extends StatefulWidget {
 }
 
 class _FoodCategoryNavBarState extends State<FoodCategoryNavBar> {
+  final Color yellowColor = const Color.fromARGB(255, 242, 202, 80);
 
   @override
   void initState() {
@@ -27,18 +28,19 @@ class _FoodCategoryNavBarState extends State<FoodCategoryNavBar> {
         (e) => e.name.toLowerCase() == categoryName.toLowerCase()
       );
     } catch (e) {
-      return ProductType.burger; 
+      return ProductType.burger;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final categoryProvider = context.watch<CategoryProvider>();
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
 
     if (categoryProvider.isLoading) {
-      return const SizedBox(
+      return SizedBox(
         height: 130,
-        child: Center(child: CircularProgressIndicator(color: Colors.black)),
+        child: Center(child: CircularProgressIndicator(color: isDark ? yellowColor : Colors.black)),
       );
     }
 
@@ -50,7 +52,7 @@ class _FoodCategoryNavBarState extends State<FoodCategoryNavBar> {
     }
 
     return Container(
-      height: 130, 
+      height: 130,
       padding: const EdgeInsets.only(left: 16.0),
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
@@ -64,16 +66,17 @@ class _FoodCategoryNavBarState extends State<FoodCategoryNavBar> {
               ProductType type = _mapStringToEnum(category.name);
 
               Navigator.pushNamed(
-                context, 
-                AppRoutes.categoryPage, 
+                context,
+                AppRoutes.categoryPage,
                 arguments: type
-              ); 
+              );
             },
             child: CategoryItem(
               imagePath: category.icon,
               label: category.name,
               width: category.width,
               top: category.top,
+              isDark: isDark,
             ),
           );
         },
@@ -87,19 +90,21 @@ class CategoryItem extends StatelessWidget {
   final String label;
   final double width;
   final double top;
+  final bool isDark;
 
   const CategoryItem({
     super.key,
     required this.imagePath,
     required this.label,
     required this.width,
-    required this.top
+    required this.top,
+    required this.isDark,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 110, 
+      width: 110,
       color: Colors.transparent,
       child: Stack(
         alignment: Alignment.center,
@@ -111,20 +116,20 @@ class CategoryItem extends StatelessWidget {
               decoration: const BoxDecoration(
                  shape: BoxShape.circle,
               ),
-              child: imagePath.startsWith('http') 
+              child: imagePath.startsWith('http')
                   ? Image.network(imagePath, fit: BoxFit.contain)
                   : Image.asset(imagePath, fit: BoxFit.contain),
             ),
           ),
 
           Positioned(
-            bottom: 10, 
+            bottom: 10,
             child: Text(
               label,
-              style: const TextStyle(
-                fontSize: 16, 
+              style: TextStyle(
+                fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: Colors.black,
+                color: isDark ? Colors.white : Colors.black,
               ),
             ),
           ),

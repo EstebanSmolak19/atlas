@@ -20,7 +20,7 @@ class HistoryProvider with ChangeNotifier {
 
     _isLoading = true;
     notifyListeners();
-    
+
     try {
       final snapshot = await _db
           .collection('users')
@@ -32,9 +32,9 @@ class HistoryProvider with ChangeNotifier {
       _orders = snapshot.docs
           .map((doc) => HistoryModel.fromMap(doc.data(), doc.id))
           .toList();
-          
+
     } catch (e) {
-      print("Erreur fetch history: $e");
+      print(e);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -49,20 +49,27 @@ class HistoryProvider with ChangeNotifier {
       return {
         'productId': cartItem.product.id,
         'name': cartItem.product.name,
-        'price': cartItem.product.price,
+        'price': cartItem.unitPrice,
         'quantity': cartItem.quantity,
         'img_url': cartItem.product.img_url,
+        'type': cartItem.product.type,
+        'isMenu': cartItem.isMenu,
+        'isReward': cartItem.isReward,
       };
     }).toList();
 
-    await _db.collection('users').doc(user.uid).collection('history').add({
-      'userId': user.uid,
-      'total': totalAmount,
-      'status': 'En préparation',
-      'date': FieldValue.serverTimestamp(),
-      'items': orderItems,
-    });
+    try {
+      await _db.collection('users').doc(user.uid).collection('history').add({
+        'userId': user.uid,
+        'total': totalAmount,
+        'status': 'En préparation',
+        'date': FieldValue.serverTimestamp(),
+        'items': orderItems,
+      });
 
-    await fetchUserHistory();
+      await fetchUserHistory();
+    } catch (e) {
+      rethrow;
+    }
   }
 }
