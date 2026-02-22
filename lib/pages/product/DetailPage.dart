@@ -1,5 +1,4 @@
 import 'package:atlas/models/ProductModel.dart';
-import 'package:atlas/pages/MenuSelectionPage.dart';
 import 'package:atlas/pages/product/ReviewPage.dart';
 import 'package:atlas/providers/CommandeProvider.dart';
 import 'package:atlas/services/UserService.dart';
@@ -84,7 +83,7 @@ class _DetailPageState extends State<DetailPage> {
                                 BlendMode.srcIn
                               ),
                               child: Image.asset(
-                                'assets/${product.img_url}',
+                                '${product.img_url}',
                                 fit: BoxFit.contain,
                                 errorBuilder: (context, error, stackTrace) => const SizedBox(),
                               ),
@@ -92,8 +91,9 @@ class _DetailPageState extends State<DetailPage> {
                           ),
                         ),
                         Image.asset(
-                          'assets/${product.img_url}',
+                          '${product.img_url}',
                           fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) => const Icon(Icons.fastfood, size: 100),
                         ),
                       ],
                     ),
@@ -332,17 +332,10 @@ class _DetailPageState extends State<DetailPage> {
                           Expanded(
                             child: ElevatedButton(
                               onPressed: () {
-                                if (isMenu) {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => MenuSelectionPage(mainProduct: product),
-                                    ),
-                                  );
-                                } else {
-                                  commandeProvider.addItem(product, quantity);
-                                  Toast.show(context, "${quantity} ${product.name} ajouté au panier !");
-                                }
+                                // Ajout au panier avec le flag isMenu
+                                commandeProvider.addItem(product, quantity, isMenu: isMenu);
+                                Toast.show(context, "${quantity} ${product.name} ${isMenu ? '(Menu)' : ''} ajouté au panier !");
+                                Navigator.pop(context); // Retour à la carte
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: isDark ? yellowColor : Colors.black,
@@ -352,7 +345,7 @@ class _DetailPageState extends State<DetailPage> {
                                 elevation: 5,
                               ),
                               child: Text(
-                                isMenu ? "Créer son menu" : "Ajouter au panier",
+                                isMenu ? "Ajouter le Menu" : "Ajouter au panier",
                                 style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                               ),
                             ),

@@ -18,7 +18,6 @@ class HistoryProvider with ChangeNotifier {
     final user = _auth.currentUser;
     if (user == null) return;
 
-    print("[LOG] Récupération de l'historique des commandes pour: ${user.email}");
     _isLoading = true;
     notifyListeners();
 
@@ -34,10 +33,8 @@ class HistoryProvider with ChangeNotifier {
           .map((doc) => HistoryModel.fromMap(doc.data(), doc.id))
           .toList();
 
-      print("[LOG] ${_orders.length} commandes chargées dans l'historique");
-
     } catch (e) {
-      print("[LOG] Erreur fetch history: $e");
+      print(e);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -48,16 +45,16 @@ class HistoryProvider with ChangeNotifier {
     final user = _auth.currentUser;
     if (user == null) throw Exception("Utilisateur non connecté");
 
-    print("[LOG] Tentative de création de commande (Montant: ${totalAmount.toStringAsFixed(2)}€)");
-
     List<Map<String, dynamic>> orderItems = cartProvider.items.map((cartItem) {
       return {
         'productId': cartItem.product.id,
         'name': cartItem.product.name,
-        'price': cartItem.product.price,
+        'price': cartItem.unitPrice,
         'quantity': cartItem.quantity,
         'img_url': cartItem.product.img_url,
-        'details': cartItem.product.description,
+        'type': cartItem.product.type,
+        'isMenu': cartItem.isMenu,
+        'isReward': cartItem.isReward,
       };
     }).toList();
 
@@ -70,10 +67,8 @@ class HistoryProvider with ChangeNotifier {
         'items': orderItems,
       });
 
-      print("[LOG] Commande enregistrée avec succès dans Firestore");
       await fetchUserHistory();
     } catch (e) {
-      print("[LOG] Erreur lors de la création de la commande: $e");
       rethrow;
     }
   }

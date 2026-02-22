@@ -21,7 +21,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
       "price": "4.99€",
       "period": "/ mois",
       "savings": null,
-      "id": "basic",
+      "id": "nomad",
       "benefits": [
         "Livraison offerte dès 30€ 🛵",
         "5% de réduction sur les menus 🏷️",
@@ -33,7 +33,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
       "price": "9.99€",
       "period": "/ mois",
       "savings": "Populaire",
-      "id": "standard",
+      "id": "exporer",
       "benefits": [
         "Livraison offerte illimitée 🚀",
         "10% de réduction sur tout 💎",
@@ -46,7 +46,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
       "price": "19.99€",
       "period": "/ mois",
       "savings": "Best",
-      "id": "premium",
+      "id": "elite",
       "benefits": [
         "Livraison offerte illimitée 🚀",
         "20% de réduction sur tout 🔥",

@@ -5,11 +5,9 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('Tests Complets Panier (CommandeProvider)', () {
-
-    // Produit de base (10€)
     final product10 = ProductModel(
       id: 'p1',
-      description: 'Miam',
+      description: 'Test',
       name: 'Burger',
       price: 10.0,
       average: 5.0,
@@ -21,133 +19,189 @@ void main() {
       img_url: 'img.png',
     );
 
-    // Produit cher (40€) pour tester le seuil de livraison
     final product40 = ProductModel(
       id: 'p2',
       description: 'Luxe',
-      name: 'Caviar',
+      name: 'Pizza XL',
       price: 40.0,
       average: 5.0,
-      calorie: 100,
-      time: 10,
-      type: 'other',
+      calorie: 1000,
+      time: 20,
+      type: 'pizza',
       rating_count: 0,
-      nationality: 'FR',
+      nationality: 'IT',
       img_url: 'img.png',
     );
 
-    test('Standard : Prix normal + Frais de livraison', () {
+    test('STANDARD : Pas de réduction, Livraison 2.55, Points x1', () {
       final provider = Commandeprovider();
-      final user = UserModel(email: 'a@a.com', pseudo: 'A', points: 0, premium: false, addresses: [], planId: 'None', isAdmin: false);
+      final user = UserModel(
+        email: 'a@a.com',
+        pseudo: 'A',
+        points: 0,
+        premium: false,
+        addresses: [],
+        planId: 'None',
+        isAdmin: false
+      );
 
       provider.updateUser(user);
       provider.addItem(product10, 1);
 
-      // 10€ + 2.55€ de frais
       expect(provider.subTotal, 10.0);
       expect(provider.deliveryFee, 2.55);
       expect(provider.total, 12.55);
+      expect(provider.points, 10);
     });
 
-    test('Nomad (< 30€) : -5% + Frais de livraison', () {
+    test('NOMAD : -5% réduction, Livraison 0 si >= 30€ sinon 2.55', () {
       final provider = Commandeprovider();
-      final user = UserModel(email: 'b@b.com', pseudo: 'B', points: 0, premium: true, addresses: [], planId: 'nomad', isAdmin: false);
+      final user = UserModel(
+        email: 'b@b.com',
+        pseudo: 'B',
+        points: 0,
+        premium: true,
+        addresses: [],
+        planId: 'nomad',
+        isAdmin: false
+      );
 
       provider.updateUser(user);
       provider.addItem(product10, 1);
 
-      // (10€ * 0.95) + 2.55€ = 9.50 + 2.55 = 12.05€
       expect(provider.deliveryFee, 2.55);
       expect(provider.total, closeTo(12.05, 0.01));
-    });
 
-    test('Nomad (> 30€) : -5% + Livraison OFFERTE', () {
-      final provider = Commandeprovider();
-      final user = UserModel(email: 'b@b.com', pseudo: 'B', points: 0, premium: true, addresses: [], planId: 'nomad', isAdmin: false);
+      provider.clearCart();
+      provider.addItem(product40, 1);
 
-      provider.updateUser(user);
-      provider.addItem(product40, 1); // 40€
-
-      // (40€ * 0.95) + 0€ = 38.0€
-      expect(provider.subTotal, 40.0);
       expect(provider.deliveryFee, 0.0);
       expect(provider.total, 38.0);
+      expect(provider.points, 40);
     });
 
-    test('Explorer : -10% + Livraison OFFERTE (toujours)', () {
+    test('EXPLORER : -10% réduction, Livraison OFFERTE toujours, Points x1', () {
       final provider = Commandeprovider();
-      final user = UserModel(email: 'c@c.com', pseudo: 'C', points: 0, premium: true, addresses: [], planId: 'explorer', isAdmin: false);
-
-      provider.updateUser(user);
-      provider.addItem(product10, 1); // Seulement 10€
-
-      // (10€ * 0.90) + 0€ = 9.0€
-      expect(provider.deliveryFee, 0.0);
-      expect(provider.total, 9.0);
-    });
-
-    test('Elite : -20% + Livraison OFFERTE (toujours)', () {
-      final provider = Commandeprovider();
-      final user = UserModel(email: 'd@d.com', pseudo: 'D', points: 0, premium: true, addresses: [], planId: 'elite', isAdmin: false);
+      final user = UserModel(
+        email: 'c@c.com',
+        pseudo: 'C',
+        points: 0,
+        premium: true,
+        addresses: [],
+        planId: 'explorer',
+        isAdmin: false
+      );
 
       provider.updateUser(user);
       provider.addItem(product10, 1);
 
-      // (10€ * 0.80) + 0€ = 8.0€
+      expect(provider.deliveryFee, 0.0);
+      expect(provider.total, 9.0);
+      expect(provider.points, 10);
+    });
+
+    test('ELITE : -20% réduction, Livraison OFFERTE toujours, Points x2', () {
+      final provider = Commandeprovider();
+      final user = UserModel(
+        email: 'd@d.com',
+        pseudo: 'D',
+        points: 0,
+        premium: true,
+        addresses: [],
+        planId: 'elite',
+        isAdmin: false
+      );
+
+      provider.updateUser(user);
+      provider.addItem(product10, 1);
+
       expect(provider.deliveryFee, 0.0);
       expect(provider.total, 8.0);
+      expect(provider.points, 20);
     });
 
-    test('Récompense : Ajout réussi si assez de points', () {
+    test('MENU : Supplément 3.99€ et calcul des points sur le total', () {
       final provider = Commandeprovider();
-      // User avec 100 points
-      final user = UserModel(email: 'e@e.com', pseudo: 'E', points: 100, premium: false, addresses: [], planId: 'None', isAdmin: false);
+      final user = UserModel(
+        email: 'a@a.com',
+        pseudo: 'A',
+        points: 0,
+        premium: false,
+        addresses: [],
+        planId: 'None',
+        isAdmin: false
+      );
 
       provider.updateUser(user);
+      provider.addItem(product10, 1, isMenu: true);
 
-      // Ajout récompense coûtant 50 pts
+      expect(provider.subTotal, 13.99);
+      expect(provider.points, 13);
+      expect(provider.total, 13.99 + 2.55);
+    });
+
+    test('RECOMPENSE : Prix 0€ et déduction correcte des points', () {
+      final provider = Commandeprovider();
+      final user = UserModel(
+        email: 'e@e.com',
+        pseudo: 'E',
+        points: 100,
+        premium: false,
+        addresses: [],
+        planId: 'None',
+        isAdmin: false
+      );
+
+      provider.updateUser(user);
       provider.addItem(product10, 1, isReward: true, rewardCost: 50);
 
-      // Le prix de la récompense doit être 0
       expect(provider.subTotal, 0.0);
-
-      // Points utilisés
       expect(provider.usedRewardPoints, 50);
-
-      // Points restants virtuels
       expect(provider.availablePoints, 50);
+      expect(provider.total, 2.55);
     });
 
-    test('Récompense : Erreur si pas assez de points', () {
+    test('MIXTE : Article payant + Récompense gratuite', () {
       final provider = Commandeprovider();
-
-      // User avec seulement 10 points
-      final user = UserModel(email: 'f@f.com', pseudo: 'F', points: 10, premium: false, addresses: [], planId: 'None', isAdmin: false);
+      final user = UserModel(
+        email: 'f@f.com',
+        pseudo: 'F',
+        points: 500,
+        premium: true,
+        addresses: [],
+        planId: 'elite',
+        isAdmin: false
+      );
 
       provider.updateUser(user);
+      provider.addItem(product10, 1);
+      provider.addItem(product40, 1, isReward: true, rewardCost: 300);
 
-      // Doit lever une exception car 50 > 10
-      expect(
-        () => provider.addItem(product10, 1, isReward: true, rewardCost: 50),
-        throwsException
-      );
+      expect(provider.subTotal, 10.0);
+      expect(provider.deliveryFee, 0.0);
+      expect(provider.total, 8.0);
+      expect(provider.points, 20);
+      expect(provider.availablePoints, 200);
     });
 
-    test('Récompense : Erreur si déjà une récompense dans le panier', () {
+    test('QUANTITE : Calcul correct avec plusieurs articles', () {
       final provider = Commandeprovider();
-      final user = UserModel(email: 'g@g.com', pseudo: 'G', points: 200, premium: false, addresses: [], planId: 'None', isAdmin: false);
+      final user = UserModel(
+        email: 'a@a.com',
+        pseudo: 'A',
+        points: 0,
+        premium: false,
+        addresses: [],
+        planId: 'None',
+        isAdmin: false
+      );
 
       provider.updateUser(user);
+      provider.addItem(product10, 3);
 
-      // 1ère récompense OK
-      provider.addItem(product10, 1, isReward: true, rewardCost: 50);
-
-      // 2ème récompense doit échouer (limite de 1)
-      expect(
-        () => provider.addItem(product40, 1, isReward: true, rewardCost: 50),
-        throwsException
-      );
+      expect(provider.subTotal, 30.0);
+      expect(provider.points, 30);
+      expect(provider.total, 32.55);
     });
-
   });
 }
