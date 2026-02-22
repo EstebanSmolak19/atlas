@@ -30,8 +30,6 @@ class RewardProvider with ChangeNotifier {
         return RewardModel.fromMap(data);
       }).toList();
 
-      print("[LOG] ${_rewards.length} récompenses récupérées");
-
     } catch (e) {
       print("[LOG] Erreur fetch rewards: $e");
     } finally {

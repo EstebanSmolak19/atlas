@@ -38,7 +38,7 @@ void main() {
 
     test('Standard : Prix normal + Frais de livraison', () {
       final provider = Commandeprovider();
-      final user = UserModel(email: 'a@a.com', pseudo: 'A', points: 0, premium: false, addresses: [], planId: 'None');
+      final user = UserModel(email: 'a@a.com', pseudo: 'A', points: 0, premium: false, addresses: [], planId: 'None', isAdmin: false);
 
       provider.updateUser(user);
       provider.addItem(product10, 1);
@@ -51,7 +51,7 @@ void main() {
 
     test('Nomad (< 30€) : -5% + Frais de livraison', () {
       final provider = Commandeprovider();
-      final user = UserModel(email: 'b@b.com', pseudo: 'B', points: 0, premium: true, addresses: [], planId: 'nomad');
+      final user = UserModel(email: 'b@b.com', pseudo: 'B', points: 0, premium: true, addresses: [], planId: 'nomad', isAdmin: false);
 
       provider.updateUser(user);
       provider.addItem(product10, 1);
@@ -63,7 +63,7 @@ void main() {
 
     test('Nomad (> 30€) : -5% + Livraison OFFERTE', () {
       final provider = Commandeprovider();
-      final user = UserModel(email: 'b@b.com', pseudo: 'B', points: 0, premium: true, addresses: [], planId: 'nomad');
+      final user = UserModel(email: 'b@b.com', pseudo: 'B', points: 0, premium: true, addresses: [], planId: 'nomad', isAdmin: false);
 
       provider.updateUser(user);
       provider.addItem(product40, 1); // 40€
@@ -76,7 +76,7 @@ void main() {
 
     test('Explorer : -10% + Livraison OFFERTE (toujours)', () {
       final provider = Commandeprovider();
-      final user = UserModel(email: 'c@c.com', pseudo: 'C', points: 0, premium: true, addresses: [], planId: 'explorer');
+      final user = UserModel(email: 'c@c.com', pseudo: 'C', points: 0, premium: true, addresses: [], planId: 'explorer', isAdmin: false);
 
       provider.updateUser(user);
       provider.addItem(product10, 1); // Seulement 10€
@@ -88,7 +88,7 @@ void main() {
 
     test('Elite : -20% + Livraison OFFERTE (toujours)', () {
       final provider = Commandeprovider();
-      final user = UserModel(email: 'd@d.com', pseudo: 'D', points: 0, premium: true, addresses: [], planId: 'elite');
+      final user = UserModel(email: 'd@d.com', pseudo: 'D', points: 0, premium: true, addresses: [], planId: 'elite', isAdmin: false);
 
       provider.updateUser(user);
       provider.addItem(product10, 1);
@@ -101,7 +101,7 @@ void main() {
     test('Récompense : Ajout réussi si assez de points', () {
       final provider = Commandeprovider();
       // User avec 100 points
-      final user = UserModel(email: 'e@e.com', pseudo: 'E', points: 100, premium: false, addresses: [], planId: 'None');
+      final user = UserModel(email: 'e@e.com', pseudo: 'E', points: 100, premium: false, addresses: [], planId: 'None', isAdmin: false);
 
       provider.updateUser(user);
 
@@ -120,9 +120,9 @@ void main() {
 
     test('Récompense : Erreur si pas assez de points', () {
       final provider = Commandeprovider();
-      
+
       // User avec seulement 10 points
-      final user = UserModel(email: 'f@f.com', pseudo: 'F', points: 10, premium: false, addresses: [], planId: 'None');
+      final user = UserModel(email: 'f@f.com', pseudo: 'F', points: 10, premium: false, addresses: [], planId: 'None', isAdmin: false);
 
       provider.updateUser(user);
 
@@ -135,7 +135,7 @@ void main() {
 
     test('Récompense : Erreur si déjà une récompense dans le panier', () {
       final provider = Commandeprovider();
-      final user = UserModel(email: 'g@g.com', pseudo: 'G', points: 200, premium: false, addresses: [], planId: 'None');
+      final user = UserModel(email: 'g@g.com', pseudo: 'G', points: 200, premium: false, addresses: [], planId: 'None', isAdmin: false);
 
       provider.updateUser(user);
 

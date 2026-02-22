@@ -32,16 +32,32 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/burger1.png
-    - assets/burgerLogin.png
+    - assets/burger/burger1.png
+    - assets/burger/burgerLogin.png
+    - assets/burger/Aussie_Beetroot.png
+    - assets/burger/Le_Pampa_Chimichurri.png
+    - assets/burger/Olympe_Imperial.png
+    - assets/burger/Le_Tokyo_Umami.png
+    - assets/burger/Le_Mafe_Burger.png
+
     - assets/icon-burger.png
     - assets/icon-pizza.png
     - assets/icon-drink.png
     - assets/icon-dessert.png
-    - assets/pizza-provençale.png
+
     - assets/logo.png
-    - assets/pizza-berbere.png
-    - assets/pizza-dakar.png
-    - assets/pizza-sdf.png
-    - assets/pizza-japonais.png
-    - assets/pizza-chine.png
+
+    - assets/pizza/pizza-berbere.png
+    - assets/pizza/pizza-dakar.png
+    - assets/pizza/pizza-sdf.png
+    - assets/pizza/pizza-japonais.png
+    - assets/pizza/pizza-chine.png
+    - assets/pizza/pizza-provençale.png
+    - assets/pizza/Or_Noir_de_Kobe.png
+
+
+    - assets/boisson/Shake_Beurre_de_Cacahuete.png
+    - assets/boisson/Limonade_Curuba_Menthe.png
+    - assets/boisson/Bissap_Royal.png
+    - assets/boisson/Bubble_Tea_Taro_Violet.png
+    - assets/boisson/Cafe_Glace_Frappe.png

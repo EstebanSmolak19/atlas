@@ -2,6 +2,7 @@ import 'package:atlas/models/AppRoutes.dart';
 import 'package:atlas/models/ProductModel.dart';
 import 'package:atlas/providers/FavoriteProvider.dart';
 import 'package:atlas/providers/CommandeProvider.dart';
+import 'package:atlas/providers/NavigationProvider.dart';
 import 'package:atlas/widgets/appbar/customAppbar.dart';
 import 'package:atlas/widgets/login/Toast.dart';
 import 'package:flutter/material.dart';
@@ -105,11 +106,12 @@ class _FavoritePageState extends State<FavoritePage> {
                       Padding(
                         padding: const EdgeInsets.all(10.0),
                         child: Hero(
-                          tag: "fav_${product.name}",
+                          tag: "fav_${product.id}", // Utilisation de l'id pour le tag unique
                           child: Image.asset(
-                            'assets/${product.img_url}',
+                            '${product.img_url}',
                             fit: BoxFit.contain,
-                            errorBuilder: (context, error, stackTrace) => Image.asset('assets/burger1.png'),
+                            errorBuilder: (context, error, stackTrace) =>
+                              const Icon(Icons.fastfood, size: 50, color: Colors.white),
                           ),
                         ),
                       ),
@@ -268,7 +270,12 @@ class _FavoritePageState extends State<FavoritePage> {
           const SizedBox(height: 35),
           ElevatedButton(
             onPressed: () {
-              Navigator.pushNamedAndRemoveUntil(context, AppRoutes.home, (route) => false);
+              // RÉPARATION REDIRECTION : On utilise le NavigationProvider pour revenir à l'onglet "Carte" (Index 0)
+              context.read<NavigationProvider>().setIndex(0);
+              // Si la page de favoris est une page séparée, on pop, sinon le setIndex suffit
+              if (Navigator.canPop(context)) {
+                Navigator.pop(context);
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: isDark ? yellowColor : Colors.black,

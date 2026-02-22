@@ -9,6 +9,7 @@ import 'package:atlas/widgets/infoBadge.dart';
 import 'package:atlas/widgets/login/Toast.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'dart:ui' as ui;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
@@ -41,13 +42,11 @@ class _DetailPageState extends State<DetailPage> {
     final productArg = ModalRoute.of(context)!.settings.arguments as ProductModel;
     final commandeProvider = context.watch<Commandeprovider>();
 
-    // --- VARIABLES DE THÈME ---
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
     final Color cardBg = Theme.of(context).cardColor;
     final Color textColor = isDark ? Colors.white : Colors.black;
     final Color subTextColor = isDark ? Colors.white70 : Colors.grey[600]!;
     final Color toggleBg = isDark ? Colors.white10 : const Color(0xFFF5F5F5);
-    // ---------------------------
 
     return StreamBuilder<DocumentSnapshot>(
       stream: FirebaseFirestore.instance.collection('products').doc(productArg.id).snapshots(),
@@ -70,22 +69,33 @@ class _DetailPageState extends State<DetailPage> {
                 child: Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    gradient: RadialGradient(
-                      colors: [
-                        isDark ? Colors.black26 : Colors.white.withOpacity(0.6),
-                        yellowColor
-                      ],
-                      center: Alignment.center,
-                      radius: 0.53,
-                    ),
-                  ),
                   child: Hero(
                     tag: productArg.name,
-                    child: Image.asset(
-                      'assets/${product.img_url}',
-                      fit: BoxFit.contain,
-                      errorBuilder: (context, error, stackTrace) => Image.asset('assets/pizza1.png'),
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Transform.translate(
+                          offset: const Offset(10, 15),
+                          child: ImageFiltered(
+                            imageFilter: ui.ImageFilter.blur(sigmaX: 8.0, sigmaY: 8.0),
+                            child: ColorFiltered(
+                              colorFilter: ColorFilter.mode(
+                                Colors.black.withOpacity(0.4),
+                                BlendMode.srcIn
+                              ),
+                              child: Image.asset(
+                                'assets/${product.img_url}',
+                                fit: BoxFit.contain,
+                                errorBuilder: (context, error, stackTrace) => const SizedBox(),
+                              ),
+                            ),
+                          ),
+                        ),
+                        Image.asset(
+                          'assets/${product.img_url}',
+                          fit: BoxFit.contain,
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -152,13 +162,11 @@ class _DetailPageState extends State<DetailPage> {
 
                               Row(
                                 children: [
-                                  // --- CORRECTION : Ajout du paramètre context ---
                                   buildInfoBadge(context, Icons.star, product.average.toStringAsFixed(1), Colors.orange),
                                   const SizedBox(width: 20),
                                   buildInfoBadge(context, Icons.local_fire_department, "${product.calorie.toString()} kcal", Colors.redAccent),
                                   const SizedBox(width: 20),
                                   buildInfoBadge(context, Icons.access_time_filled, "${product.time.toString()} min", Colors.blueGrey),
-                                  // ----------------------------------------------
                                 ],
                               ),
 

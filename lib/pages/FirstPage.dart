@@ -81,7 +81,7 @@ class _FirstPageState extends State<FirstPage> {
                         child: ImageFiltered(
                           imageFilter: ui.ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
                           child: Image.asset(
-                            'assets/burgerLogin.png',
+                            'assets/burger/burgerLogin.png',
                             fit: BoxFit.contain,
                             color: Colors.black.withOpacity(0.3),
                             colorBlendMode: BlendMode.srcIn,
@@ -89,14 +89,14 @@ class _FirstPageState extends State<FirstPage> {
                         ),
                       ),
                       Image.asset(
-                        'assets/burgerLogin.png',
+                        'assets/burger/burgerLogin.png',
                         fit: BoxFit.contain,
                       ),
                     ],
                   ),
                 ),
               ),
-              
+
               const SizedBox(height: 20),
 
               Expanded(
@@ -143,7 +143,7 @@ class _FirstPageState extends State<FirstPage> {
                 children: List.generate(
                   _slides.length,
                   (index) => _buildDot(
-                    isActive: index == _currentPage, 
+                    isActive: index == _currentPage,
                     color: darkColor
                   ),
                 ),
@@ -177,7 +177,7 @@ class _FirstPageState extends State<FirstPage> {
                   ),
 
                   const SizedBox(width: 16),
-                  
+
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () {
@@ -213,7 +213,7 @@ class _FirstPageState extends State<FirstPage> {
 
   Widget _buildDot({required bool isActive, required Color color}) {
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 300), 
+      duration: const Duration(milliseconds: 300),
       margin: const EdgeInsets.symmetric(horizontal: 4),
       width: isActive ? 24 : 8,
       height: 8,

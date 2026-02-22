@@ -122,7 +122,6 @@ class _ProfilePageState extends State<ProfilePage> {
     if (cost <= 50) return "L'Explorateur";
     if (cost <= 150) return "Le Gourmand";
     if (cost <= 300) return "L'Aventurier";
-    if (cost <= 500) return "Le Conquérant";
     return "L'Empereur";
   }
 
@@ -176,8 +175,8 @@ class _ProfilePageState extends State<ProfilePage> {
                 Icon(Icons.emoji_events, color: yellowColor, size: 16),
                 const SizedBox(width: 6),
                 Text(
-                  "Palier atteint : ${lastReachedTier['name']}",
-                  style: TextStyle(color: yellowColor, fontSize: 12, fontWeight: FontWeight.bold),
+                  "Grade : ${lastReachedTier['name']}",
+                  style: TextStyle(color: yellowColor, fontSize: 13, fontWeight: FontWeight.w900),
                 ),
               ],
             ),
@@ -195,7 +194,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 Icon(Icons.stars, color: yellowColor, size: 24),
                 const SizedBox(width: 12),
                 const Expanded(
-                  child: Text("🎉 Félicitations ! Vous avez atteint tous les paliers !", style: TextStyle(color: Color.fromARGB(255, 242, 202, 80), fontSize: 13, fontWeight: FontWeight.bold)),
+                  child: Text("Félicitations ! Vous êtes L'EMPEREUR d'Atlas ! 👑", style: TextStyle(color: Color.fromARGB(255, 242, 202, 80), fontSize: 13, fontWeight: FontWeight.bold)),
                 ),
               ],
             ),
@@ -204,13 +203,13 @@ class _ProfilePageState extends State<ProfilePage> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text("Prochain palier : ${nextTier!['name']}", style: const TextStyle(color: Colors.white70, fontSize: 13)),
+              Text("Prochain Grade : ${nextTier!['name']}", style: const TextStyle(color: Colors.white70, fontSize: 13)),
               const SizedBox(height: 4),
-              Text("${nextTier['points'] - displayedPoints} pts restants", style: TextStyle(color: yellowColor, fontSize: 12, fontWeight: FontWeight.bold)),
+              Text("${nextTier['points'] - displayedPoints} pts pour le prochain palier", style: TextStyle(color: yellowColor, fontSize: 12, fontWeight: FontWeight.bold)),
               const SizedBox(height: 10),
               Stack(
                 children: [
-                  Container(height: 12, decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(10))),
+                  Container(height: 12, decoration: BoxDecoration(color: Colors.white.withOpacity(0.1), borderRadius: BorderRadius.circular(10))),
                   FractionallySizedBox(
                     widthFactor: progress.clamp(0.0, 1.0),
                     child: Container(
@@ -258,7 +257,7 @@ class _ProfilePageState extends State<ProfilePage> {
         children: [
           Positioned(
             top: 0, right: -80,
-            child: Transform.rotate(angle: 0.2, child: Opacity(opacity: isDark ? 0.05 : 0.1, child: Image.asset('assets/burger1.png', width: 300))),
+            child: Transform.rotate(angle: 0.2, child: Opacity(opacity: isDark ? 0.05 : 0.1, child: Image.asset('assets/burger/burger1.png', width: 300))),
           ),
 
           RefreshIndicator(
@@ -268,7 +267,6 @@ class _ProfilePageState extends State<ProfilePage> {
               physics: const AlwaysScrollableScrollPhysics(),
               child: Column(
                 children: [
-                  // HEADER
                   Stack(
                     clipBehavior: Clip.none,
                     alignment: Alignment.center,
@@ -327,7 +325,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text("BURGER CLUB", style: TextStyle(color: yellowColor, fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: 2)),
+                              Text("CLUB ATLAS FIDÉLITÉ", style: TextStyle(color: yellowColor, fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: 2)),
                               const SizedBox(height: 5),
                               Row(
                                 crossAxisAlignment: CrossAxisAlignment.end,
@@ -355,7 +353,6 @@ class _ProfilePageState extends State<ProfilePage> {
 
                         const SizedBox(height: 30),
 
-                        // PARAMÈTRES
                         Container(
                           decoration: BoxDecoration(color: cardBg, borderRadius: BorderRadius.circular(24)),
                           child: Column(
@@ -369,7 +366,6 @@ class _ProfilePageState extends State<ProfilePage> {
 
                         const SizedBox(height: 40),
 
-                        // BOUTONS D'ACTION
                         Container(
                           padding: const EdgeInsets.all(20),
                           decoration: BoxDecoration(

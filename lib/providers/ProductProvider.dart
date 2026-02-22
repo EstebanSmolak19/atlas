@@ -1,11 +1,13 @@
 import 'package:atlas/enum/ProductType.dart';
 import 'package:atlas/models/ProductModel.dart';
 import 'package:atlas/services/DatabaseService.dart';
+import 'package:atlas/services/AuthService.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class ProductProvider with ChangeNotifier {
   final DatabaseService _dbService = DatabaseService();
+  final AuthService _authService = AuthService();
 
   List<ProductModel> _popularItems = [];
   List<ProductModel> _categoryProducts = [];
@@ -20,6 +22,28 @@ class ProductProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   bool get isLoadingPopular => _isLoadingPopular;
   bool get isLoadingCategory => _isLoadingCategory;
+
+  Future<void> addProduct(ProductModel product) async {
+    print("[LOG] Tentative d'ajout du produit: ${product.name}");
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      // Appel du service pour l'enregistrement en base
+      await _authService.createProduct(product);
+
+      // On rafraîchit les listes locales pour inclure le nouveau produit
+      await refreshPopularItems();
+
+      print("[LOG] Produit ajouté et listes rafraîchies");
+    } catch (e) {
+      print("[LOG] Erreur addProduct: $e");
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 
   Future<void> fetchPopularItems() async {
     if (_popularItems.isNotEmpty) return;
