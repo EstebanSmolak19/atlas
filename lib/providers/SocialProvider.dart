@@ -6,7 +6,7 @@ class SocialProvider with ChangeNotifier {
 
   List<Map<String, dynamic>> _friends = [];
   List<Map<String, dynamic>> _requests = [];
-  Map<String, dynamic>? _searchedUser; // État pour la prévisualisation
+  Map<String, dynamic>? _searchedUser;
   bool _isLoading = false;
 
   List<Map<String, dynamic>> get friends => _friends;
@@ -14,7 +14,6 @@ class SocialProvider with ChangeNotifier {
   Map<String, dynamic>? get searchedUser => _searchedUser;
   bool get isLoading => _isLoading;
 
-  // Initialise l'écoute en temps réel de la liste d'amis
   void initFriendsListener() {
     _socialService.getFriendsStream().listen((data) {
       _friends = data;
@@ -22,7 +21,6 @@ class SocialProvider with ChangeNotifier {
     });
   }
 
-  // Initialise l'écoute en temps réel des demandes d'amis reçues
   void initRequestsListener() {
     _socialService.getRequestsStream().listen((data) {
       _requests = data;
@@ -30,8 +28,9 @@ class SocialProvider with ChangeNotifier {
     });
   }
 
-  // Recherche un utilisateur et stocke le résultat pour la prévisualisation
   Future<void> searchUser(String query) async {
+    if (query.trim().isEmpty) return;
+
     _isLoading = true;
     _searchedUser = null;
     notifyListeners();
@@ -39,19 +38,21 @@ class SocialProvider with ChangeNotifier {
     try {
       final user = await _socialService.searchUser(query);
       _searchedUser = user;
+    } catch (e) {
+      print("Erreur recherche: $e");
+      _searchedUser = null;
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  // Réinitialise la recherche
   void clearSearch() {
     _searchedUser = null;
+    _isLoading = false;
     notifyListeners();
   }
 
-  // Envoie une demande d'ami
   Future<void> sendFriendRequest(Map<String, dynamic> targetUser) async {
     await _socialService.sendFriendRequest(targetUser);
     _searchedUser = null;
@@ -60,6 +61,10 @@ class SocialProvider with ChangeNotifier {
 
   Future<void> acceptFriendRequest(Map<String, dynamic> requestData) async {
     await _socialService.acceptFriendRequest(requestData);
+  }
+
+  Future<void> removeFriend(String friendId) async {
+    await _socialService.removeFriend(friendId);
   }
 
   Future<void> sendPoints(String toId, int amount, String toPseudo) async {

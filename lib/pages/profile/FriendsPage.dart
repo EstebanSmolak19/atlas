@@ -20,19 +20,23 @@ class _FriendsPageState extends State<FriendsPage> with SingleTickerProviderStat
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    final social = Provider.of<SocialProvider>(context, listen: false);
-    social.initFriendsListener();
-    social.initRequestsListener();
-    social.clearSearch(); 
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final social = Provider.of<SocialProvider>(context, listen: false);
+      social.initFriendsListener();
+      social.initRequestsListener();
+      social.clearSearch();
+    });
   }
 
   void _handleSearch() async {
-    if (_searchController.text.isEmpty) return;
-    final social = Provider.of<SocialProvider>(context, listen: false);
-    await social.searchUser(_searchController.text);
+    final String query = _searchController.text.trim();
+    if (query.isEmpty) return;
 
-    if (social.searchedUser == null) {
-      Toast.show(context, "Utilisateur introuvable 🔍");
+    final social = Provider.of<SocialProvider>(context, listen: false);
+    await social.searchUser(query);
+
+    if (mounted && social.searchedUser == null && !social.isLoading) {
+      Toast.show(context, "Utilisateur introuvable ou c'est vous 🔍");
     }
   }
 
@@ -61,7 +65,6 @@ class _FriendsPageState extends State<FriendsPage> with SingleTickerProviderStat
       ),
       body: Column(
         children: [
-          // BARRE DE RECHERCHE
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: TextField(
@@ -72,7 +75,10 @@ class _FriendsPageState extends State<FriendsPage> with SingleTickerProviderStat
                 hintText: "Rechercher un pseudo ou email...",
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: socialProvider.isLoading
-                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                  ? const Padding(
+                      padding: EdgeInsets.all(12.0),
+                      child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
+                    )
                   : IconButton(icon: const Icon(Icons.send), onPressed: _handleSearch),
                 filled: true,
                 fillColor: isDark ? Colors.white.withOpacity(0.05) : Colors.white,
@@ -81,7 +87,6 @@ class _FriendsPageState extends State<FriendsPage> with SingleTickerProviderStat
             ),
           ),
 
-          // PRÉVISUALISATION DU COMPTE TROUVÉ
           if (socialProvider.searchedUser != null)
             _buildUserPreview(socialProvider.searchedUser!, isDark, textColor),
 
@@ -126,10 +131,13 @@ class _FriendsPageState extends State<FriendsPage> with SingleTickerProviderStat
             ),
           ),
           ElevatedButton(
-            onPressed: () {
-              Provider.of<SocialProvider>(context, listen: false).sendFriendRequest(user);
-              Toast.show(context, "Demande envoyée à ${user['pseudo']} ! 🚀");
-              _searchController.clear();
+            onPressed: () async {
+              await Provider.of<SocialProvider>(context, listen: false).sendFriendRequest(user);
+              if (mounted) {
+                Toast.show(context, "Demande envoyée ! 🚀");
+                _searchController.clear();
+                Provider.of<SocialProvider>(context, listen: false).clearSearch();
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.black,
@@ -148,7 +156,7 @@ class _FriendsPageState extends State<FriendsPage> with SingleTickerProviderStat
   }
 
   Widget _buildFriendsList(SocialProvider social, bool isDark, Color textColor) {
-    if (social.friends.isEmpty) return Center(child: Text("Pas encore d'amis. Explore ! 🌍", style: TextStyle(color: Colors.grey)));
+    if (social.friends.isEmpty) return const Center(child: Text("Pas encore d'amis.", style: TextStyle(color: Colors.grey)));
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: social.friends.length,
@@ -159,6 +167,7 @@ class _FriendsPageState extends State<FriendsPage> with SingleTickerProviderStat
           decoration: BoxDecoration(
             color: isDark ? Colors.white.withOpacity(0.03) : Colors.white,
             borderRadius: BorderRadius.circular(15),
+            border: Border.all(color: isDark ? Colors.white10 : Colors.grey.shade100),
           ),
           child: ListTile(
             leading: CircleAvatar(backgroundColor: yellowColor, child: Text(f['pseudo'][0], style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold))),
@@ -177,7 +186,7 @@ class _FriendsPageState extends State<FriendsPage> with SingleTickerProviderStat
   }
 
   Widget _buildRequestsList(SocialProvider social, bool isDark, Color textColor) {
-    if (social.requests.isEmpty) return const Center(child: Text("Aucune demande en attente.", style: TextStyle(color: Colors.grey)));
+    if (social.requests.isEmpty) return const Center(child: Text("Aucune demande.", style: TextStyle(color: Colors.grey)));
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: social.requests.length,
@@ -197,12 +206,8 @@ class _FriendsPageState extends State<FriendsPage> with SingleTickerProviderStat
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
-                  icon: const Icon(Icons.check_circle, color: Colors.green),
+                  icon: const Icon(Icons.check_circle, color: Colors.green, size: 30),
                   onPressed: () => social.acceptFriendRequest(r)
-                ),
-                IconButton(
-                  icon: const Icon(Icons.cancel, color: Colors.red),
-                  onPressed: () {}
                 ),
               ],
             ),

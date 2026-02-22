@@ -9,25 +9,30 @@ class SocialService {
     final currentUser = _auth.currentUser;
     if (currentUser == null) return null;
 
+    final String searchTerm = query.trim();
+    if (searchTerm.isEmpty) return null;
+
     var snapshot = await _db
         .collection('users')
-        .where('email', isEqualTo: query.trim())
+        .where('email', isEqualTo: searchTerm)
         .get();
 
     if (snapshot.docs.isEmpty) {
       snapshot = await _db
           .collection('users')
-          .where('pseudo', isEqualTo: query.trim())
+          .where('pseudo', isEqualTo: searchTerm)
           .get();
     }
 
     if (snapshot.docs.isNotEmpty) {
       final doc = snapshot.docs.first;
       if (doc.id == currentUser.uid) return null;
+
+      final data = doc.data();
       return {
         'uid': doc.id,
-        'pseudo': doc.data()['pseudo'],
-        'email': doc.data()['email'],
+        'pseudo': data['pseudo'] ?? "Anonyme",
+        'email': data['email'] ?? "",
       };
     }
     return null;
@@ -72,7 +77,6 @@ class SocialService {
       'addedAt': FieldValue.serverTimestamp(),
     });
 
-    // Ajouter moi chez l'ami (Lien bidirectionnel)
     batch.set(_db.collection('users').doc(friendId).collection('friends').doc(myId), {
       'uid': myId,
       'pseudo': myData['pseudo'],
@@ -81,6 +85,19 @@ class SocialService {
     });
 
     batch.delete(_db.collection('users').doc(myId).collection('friend_requests').doc(friendId));
+
+    await batch.commit();
+  }
+
+  Future<void> removeFriend(String friendId) async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    final myId = user.uid;
+    final batch = _db.batch();
+
+    batch.delete(_db.collection('users').doc(myId).collection('friends').doc(friendId));
+    batch.delete(_db.collection('users').doc(friendId).collection('friends').doc(myId));
 
     await batch.commit();
   }
